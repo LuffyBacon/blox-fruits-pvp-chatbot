@@ -1,0 +1,34 @@
+{
+  "builds": [
+    {
+      "label": "Fruit Main – Awakened Dough + Sanguine Art",
+      "style": "Sanguine Art",
+      "notes": ["Beginner-friendly high effectiveness", "Great stuns and combo potential", "Ken Tricking counters it without Cyborg V4"],
+      "accessories": ["Pilot Helmet", "Swan Glasses"]
+    },
+    {
+      "label": "Sword Main – Portal + CDK + Godhuman + Skull Guitar",
+      "style": "Godhuman",
+      "notes": ["Passive-aggressive play", "Portal V (Dimensional Rift) traps for confirms", "Skull Guitar utility/mobility tech"],
+      "accessories": ["Hunter Cape (Red)", "Pale Scarf"]
+    },
+    {
+      "label": "Fruit Main – Kitsune + Godhuman + Dragon Trident",
+      "style": "Godhuman",
+      "notes": ["Very fast, aggressive burst", "DT breaks Ken and confirms"],
+      "accessories": ["Kitsune Mask", "Pilot Helmet"]
+    },
+    {
+      "label": "Fruit Main – Blizzard / Venom variants",
+      "style": "Godhuman or Sanguine Art",
+      "notes": ["Blizzard: strong AoE stun/damage, weaker mobility", "Venom: DOT + defense boosts"],
+      "accessories": ["Leviathan Shield", "Swan Glasses"]
+    },
+    {
+      "label": "Gun Main – Rumble or Ice (stuns) + Acidum Rifle / Venom Bow / Kabucha / Skull Guitar",
+      "style": "Godhuman or Superhuman",
+      "notes": ["Use fruit stuns to set up gun damage", "Rare playstyle; needs great aim and prediction"],
+      "accessories": ["Dino Hood", "Leviathan Shield"]
+    }
+  ]
+}
