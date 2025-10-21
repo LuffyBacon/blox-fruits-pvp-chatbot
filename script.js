@@ -1,5 +1,4 @@
-// script.js — Blox Fruits PvP Assistant
-// Modular KB + AMD-friendly + hard timeout + auto-continue
+// script.js — Blox Fruits PvP Assistant (anti-hang + instant KB replies)
 
 import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
@@ -20,12 +19,12 @@ const ui = {
   status(t){ statusEl.textContent = t; console.log('[status]', t); }
 };
 
-// ---------- knobs (faster + full answers) ----------
-const CONTEXT_K      = 1;       // only 1 KB chunk per question (fast)
-const MAX_TOKENS     = 240;     // longer replies to avoid cutoff
-const KEEP_TURNS     = 0;       // no chat history sent (fastest)
-const REQ_TIMEOUT_MS = 60000;   // 60s hard timeout
-const KB_ONLY        = true;    // only answer from your KB
+// ---------- knobs ----------
+const CONTEXT_K      = 1;       // fastest
+const MAX_TOKENS     = 160;     // short, complete answers
+const KEEP_TURNS     = 0;       // no history sent
+const REQ_TIMEOUT_MS = 45000;   // hard cap 45s
+const KB_ONLY        = true;    // no hallucinations
 
 // ---------- WebGPU check ----------
 if (!('gpu' in navigator)) {
@@ -78,86 +77,119 @@ try {
   throw e;
 }
 
-// ---------- 2) Build search corpus ----------
-const normalize = s => (s||'').toLowerCase()
-  .replace(/[^a-z0-9\s]/g,' ')
-  .replace(/\s+/g,' ')
-  .trim();
+// ---------- 2) Quick-answer engine (instant KB lookups) ----------
+const norm = s => (s||'').toLowerCase();
+const containsAny = (s, arr) => arr.some(x => s.includes(norm(x)));
 
-function mkBlock(title, text, tag='kb'){
-  return { title, text, tag, key: normalize(`${title} ${text}`) };
-}
+function quickAnswer(q){
+  const nq = norm(q);
 
-const CORPUS = [];
-if (KB.about?.description) CORPUS.push(mkBlock('About', KB.about.description, 'about'));
-for (const line of KB.fundamentals||[]) CORPUS.push(mkBlock('Fundamentals', line, 'fundamentals'));
-for (const k in (KB.guides||{})) CORPUS.push(mkBlock(`Guide: ${k}`, KB.guides[k], 'guide'));
-
-for (const c of KB.combos||[])
-  CORPUS.push(mkBlock(`Combo: ${c.title}`,
-    `${(c.inputs||[]).join(' → ')}${c.notes?.length? ' | ' + c.notes.join(' | ') : ''}`,
-    'combo'
-  ));
-
-for (const b of KB.builds||[])
-  CORPUS.push(mkBlock(`Build: ${b.label}`,
-    `${(b.style? ('Style: ' + b.style + ' | ') : '')}${(b.notes||[]).join(' | ')}${b.accessories?.length? ' | Acc: ' + b.accessories.join(', ') : ''}`,
-    'build'
-  ));
-
-for (const ct of KB.counters||[])
-  CORPUS.push(mkBlock(`Counter vs ${ct.enemy}`,
-    `Use: ${(ct.use||[]).join(', ')} | Tips: ${(ct.tips||[]).join(' | ')}`,
-    'counter'
-  ));
-
-for (const r of KB.races||[])
-  CORPUS.push(mkBlock(`Race: ${r.name}`, r.description||'', 'race'));
-
-for (const p of KB.playstyles||[])
-  CORPUS.push(mkBlock(`Playstyle: ${p.name}`,
-    `${p.summary||p.characteristics?.join(' | ')||''}${p.tip? ' | Tip: '+p.tip : ''}${p.example_builds?.length? ' | Examples: '+p.example_builds.join(', ') : ''}`,
-    'playstyle'
-  ));
-
-for (const f of KB.fruits||[])
-  CORPUS.push(mkBlock(`Fruit: ${f.name}`,
-    `${f.role? f.role + '. ' : ''}Strengths: ${(f.strengths||[]).join(', ')}. Weaknesses: ${(f.weaknesses||[]).join(', ')}. ${Array.isArray(f.notes)? f.notes.join(' ') : (f.notes||'')}`,
-    'fruit'
-  ));
-
-function retrieveContext(q){
-  const n = normalize(q);
-  const hits = CORPUS
-    .filter(b => n ? b.key.includes(n) : false)
-    .slice(0, CONTEXT_K)
-    .map(x => `### ${x.title}\n${x.text.slice(0, 600)}`);
-
-  if (hits.length === 0 && KB.guides?.theory) {
-    return `### PvP Theory\n${KB.guides.theory.slice(0, 800)}`;
+  // combos
+  if (nq.includes('combo')) {
+    // try to match by fruit/weapon keywords
+    const hits = KB.combos.filter(c => {
+      const title = norm(c.title);
+      return nq.split(/\s+/).some(tok => title.includes(tok));
+    });
+    const top = (hits.length ? hits : KB.combos).slice(0, 3);
+    if (top.length){
+      const lines = top.map(c => `• ${c.title}: ${c.inputs.join(' → ')}${c.notes?.length ? ` (${c.notes.join(', ')})` : ''}`);
+      return `Here are some combos:\n${lines.join('\n')}\n(Pro tip: practice timing between the first 2 hits for stability on mobile.)`;
+    }
   }
-  return hits.join('\n\n');
+
+  // counters
+  if (nq.includes('counter') || nq.includes('how to beat')) {
+    const hits = KB.counters.filter(x => nq.includes(norm(x.enemy)));
+    if (hits.length){
+      const x = hits[0];
+      return `Counter vs ${x.enemy} — Use: ${x.use?.join(', ') || 'your best mobility/stun'}\nTips: ${x.tips?.join(' | ')}`;
+    }
+  }
+
+  // builds
+  if (nq.includes('build') || nq.includes('setup')) {
+    const top = KB.builds.slice(0, 3);
+    if (top.length){
+      const lines = top.map(b => `• ${b.label}${b.style?` [${b.style}]`:''} — ${b.notes?.join(' | ') || ''}`);
+      return `Try these builds:\n${lines.join('\n')}`;
+    }
+  }
+
+  // fruits / races / playstyles quick facts
+  for (const f of KB.fruits || []) {
+    if (nq.includes(norm(f.name))) {
+      return `${f.name}: strengths ${f.strengths?.join(', ')}; weaknesses ${f.weaknesses?.join(', ') || '—'}. ${Array.isArray(f.notes)? f.notes.join(' ') : (f.notes||'')}`;
+    }
+  }
+  for (const r of KB.races || []) {
+    if (nq.includes(norm(r.name))) {
+      return `Race — ${r.name}: ${r.description}`;
+    }
+  }
+  for (const p of KB.playstyles || []) {
+    if (nq.includes(norm(p.name))) {
+      const summary = p.summary || (p.characteristics? p.characteristics.join(' | ') : '');
+      return `Playstyle — ${p.name}: ${summary}${p.example_builds?.length? ` | Examples: ${p.example_builds.join(', ')}`:''}`;
+    }
+  }
+
+  // no quick hit
+  return null;
 }
 
-// ---------- 3) System prompt ----------
+// ---------- 3) Build small retrieval context for LLM ----------
+function mkBlock(title, text){
+  return `### ${title}\n${text.slice(0, 600)}`;
+}
+function retrieveContext(q){
+  const nq = norm(q);
+  const chunks = [];
+
+  // Prefer exact sections based on keywords
+  for (const c of KB.combos || []) {
+    if (nq.includes('combo') && nq.split(/\s+/).some(t => norm(c.title).includes(t))) {
+      chunks.push(mkBlock(`Combo: ${c.title}`, `${c.inputs.join(' → ')}${c.notes?.length? ' | ' + c.notes.join(' | ') : ''}`));
+      break;
+    }
+  }
+  for (const x of KB.counters || []) {
+    if (nq.includes('counter') && nq.includes(norm(x.enemy))) {
+      chunks.push(mkBlock(`Counter vs ${x.enemy}`, `Use: ${(x.use||[]).join(', ')} | Tips: ${(x.tips||[]).join(' | ')}`));
+      break;
+    }
+  }
+  for (const b of KB.builds || []) {
+    if (nq.includes('build') && nq.split(/\s+/).some(t => norm(b.label).includes(t))) {
+      chunks.push(mkBlock(`Build: ${b.label}`, `${b.style? 'Style: ' + b.style + ' | ' : ''}${(b.notes||[]).join(' | ')}`));
+      break;
+    }
+  }
+  if (chunks.length) return chunks.slice(0, CONTEXT_K).join('\n\n');
+
+  // Fallback: a single general theory chunk
+  if (KB.guides?.theory) return mkBlock('PvP Theory', KB.guides.theory);
+  return '';
+}
+
+// ---------- 4) System prompt ----------
 const SYSTEM = `
-You are the **Blox Fruits PvP Assistant**, a friendly gamer coach for all ages.
+You are the **Blox Fruits PvP Assistant**, a friendly gamer coach.
 - Use ONLY the provided Context${KB_ONLY ? ' (KB-only: if missing, say you do not have it)' : ''}.
-- Be concise, clear, and positive.
-- Keep it to ~6 bullets and under ~180 words unless the user asks for more.
-- Combos: format inputs with arrows (→) and add one timing/ping tip.
-- Counters: give 2–3 specific actions + a punish window.
-- Builds: include stat focus/style and 1–2 accessory notes.
-- If asked something not about Blox Fruits PvP, politely decline.
+- Keep it clear and under ~180 words, 6 bullets max.
+- Combos: use arrows (→) and add one timing tip.
+- Counters: 2–3 actions + punish window.
+- Builds: stat focus/style and 1–2 accessory notes.
 `;
 
-// ---------- 4) Greeting ----------
+// ---------- 5) Greeting ----------
 ui.add('assistant', "Yo bro! I'm your PvP chatbot specifically designed for Blox Fruits! You can ask me for any help you want.");
 
-// ---------- 5) Model init (AMD-friendly) ----------
+// ---------- 6) Model init (start with tiny models) ----------
 const MODELS = [
-  // "Phi-1.5-mini-q4f16_1-MLC", // uncomment if available for extra speed
-  "Phi-3-mini-4k-instruct-q4f16_1-MLC"
+  "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",     // tiny & fast
+  "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",  // tiny & fast
+  "Phi-3-mini-4k-instruct-q4f16_1-MLC"     // fallback
 ];
 let engine;
 
@@ -180,89 +212,77 @@ async function initModel(){
 try { await initModel(); }
 catch (e){ ui.status('❌ Model init failed: ' + e.message); goBtn.disabled = true; throw e; }
 
-// ---------- 6) Chat with auto-continue ----------
-const history = []; // we keep it for logs; not sent (KEEP_TURNS=0)
+// ---------- 7) LLM call with Promise.race timeout + auto-continue ----------
+async function callLLMOnce(messages){
+  // Some engines ignore AbortController; use Promise.race to enforce timeout.
+  const p = (engine.chat?.completions?.create)
+    ? engine.chat.completions.create({ messages, temperature: 0.2, max_tokens: MAX_TOKENS, stream: false })
+    : (typeof engine.chatCompletion === 'function'
+        ? engine.chatCompletion({ messages, temperature: 0.2, max_tokens: MAX_TOKENS })
+        : Promise.reject(new Error('Unsupported web-llm API version.')));
+
+  const timeout = new Promise((_, rej) =>
+    setTimeout(() => rej(new Error('timeout')), REQ_TIMEOUT_MS)
+  );
+
+  return Promise.race([p, timeout]);
+}
 
 async function askLLM(userMsg){
-  const ctx = retrieveContext(userMsg);
+  // 0) Instant path: answer straight from KB if possible
+  const quick = quickAnswer(userMsg);
+  if (quick) return quick;
 
-  if (KB_ONLY) {
-    const noCtx = !ctx || !ctx.trim() || (ctx.startsWith('### PvP Theory') && !CORPUS.length);
-    if (noCtx) return "I don’t have that in my knowledge yet. Add it to the KB or tell me your fruit/playstyle.";
+  // 1) If KB-only and no context, bail fast
+  const ctx = retrieveContext(userMsg);
+  if (KB_ONLY && (!ctx || !ctx.trim())) {
+    return "I don’t have that in my knowledge yet. Add it to the KB or tell me your fruit/playstyle.";
   }
 
-  const messagesBase = [
+  // 2) Build messages (no history for speed)
+  const base = [
     { role: 'system', content: `${SYSTEM}\n\nContext:\n${ctx}` },
     { role: 'user',   content: userMsg }
   ];
 
   ui.status('Thinking…');
 
-  // hard timeout guard
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort('timeout'), REQ_TIMEOUT_MS);
-
-  const callOnce = async (msgs) => {
-    if (engine.chat?.completions?.create){
-      return engine.chat.completions.create({
-        messages: msgs,
-        temperature: 0.2,
-        max_tokens: MAX_TOKENS,
-        stream: false,
-        signal: controller.signal
-      });
-    }
-    if (typeof engine.chatCompletion === 'function'){
-      return engine.chatCompletion({
-        messages: msgs,
-        temperature: 0.2,
-        max_tokens: MAX_TOKENS,
-        signal: controller.signal
-      });
-    }
-    throw new Error('Unsupported web-llm API version.');
-  };
-
   try {
-    // page 1
-    let res   = await callOnce(messagesBase);
+    // First page
+    let res   = await callLLMOnce(base);
     let part  = res?.choices?.[0]?.message?.content || '';
     let done  = (res?.choices?.[0]?.finish_reason || '').toLowerCase() !== 'length';
     let pages = 1;
 
-    // auto-continue up to 2 more pages if cut due to length
+    // Auto-continue at most twice
     while (!done && pages < 3) {
       pages++;
       const follow = [
-        ...messagesBase,
+        ...base,
         { role: 'assistant', content: part },
         { role: 'user', content: 'continue from where you stopped. keep it concise and finish the list.' }
       ];
-      res  = await callOnce(follow);
+      res  = await callLLMOnce(follow);
       const next = res?.choices?.[0]?.message?.content || '';
       part += (next ? '\n' + next : '');
       done = (res?.choices?.[0]?.finish_reason || '').toLowerCase() !== 'length';
     }
 
-    clearTimeout(timeout);
-    history.push({ role:'user', content:userMsg });
-    history.push({ role:'assistant', content:part || '…' });
     ui.status('✅ Ready');
     return part || '…';
 
   } catch (err) {
-    clearTimeout(timeout);
-    if (String(err).includes('timeout') || String(err?.name).includes('AbortError')) {
+    if (String(err.message).includes('timeout')) {
       ui.status('⏱️ Timed out');
-      return "Yo, that took too long on this GPU. Ask a shorter question or close heavy tabs and try again.";
+      return "Yo, that took too long on this GPU. Try a shorter question (e.g., '2 portal combos mobile') or close heavy tabs and ask again.";
     }
     console.error(err);
     ui.status('❌ Error');
-    return 'Error while thinking. Open Console (F12) and send me the first red line.';
+    return 'Error while thinking. Open Console (F12) → copy the first red error to me.';
   }
 }
 
-// ---------- 7) Send ----------
+// ---------- 8) Send ----------
 goBtn.addEventListener('click', async ()=>{
   const q = input.value.trim(); if (!q) return;
   ui.add('user', q); input.value = ''; goBtn.disabled = true;
@@ -275,4 +295,3 @@ goBtn.addEventListener('click', async ()=>{
     goBtn.disabled = false;
   }
 });
-
