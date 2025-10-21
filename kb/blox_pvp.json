@@ -1,41 +1,73 @@
 {
-  "meta": { "name": "Blox Fruits PvP Assistant", "version": "1.0" },
-  "combos": [
-    { "tag":"sand_core", "title":"Sand Combo", "inputs":["Sand C","Sand V","Shark Anchor Z","Shark Anchor X","Sanguine Art Z","Sanguine Art C","Sanguine Art X"], "starter":"Close or mid", "notes":["Mid difficulty"] },
-    { "tag":"portal_anchor_sa", "title":"Portal Combo", "inputs":["Portal Z (optional)","Shark Anchor Z","Shark Anchor X","Sanguine Art Z","Sanguine Art C","Sanguine Art X"], "starter":"Mid", "notes":["Easy → Low-Mid"] },
-    { "tag":"sand_trident_sa", "title":"Sand Combo #2", "inputs":["Sand C","Dragon Trident Z","Sanguine Art Z","Sanguine Art C","Dragon Trident X","M1 (optional)","Sanguine Art X"], "starter":"Close", "notes":["Medium-Advanced"] },
-    { "tag":"nofruit_cdk_gh", "title":"No Fruit (Sword Stats)", "inputs":["CDK X","CDK Z","Godhuman Z","Godhuman X","Godhuman C"], "starter":"Close", "notes":["Easy"] },
-    { "tag":"yama_gh", "title":"Yama (Sword Stats)", "inputs":["Yama X","Godhuman Z","Yama Z","Godhuman C","Godhuman X"], "starter":"Short hop", "notes":["Medium-Advanced"] },
-    { "tag":"ice_mix", "title":"Ice Combo (Fruit Stats)", "inputs":["Ice V","Unawakened Ice C","Ice Z","M1","M1","Godhuman X","Godhuman Z","Godhuman C"], "starter":"Mid", "notes":["Medium"] },
-    { "tag":"dragon_route", "title":"Dragon Combo", "inputs":["Dragon C","Spikey Trident X","Godhuman X","Godhuman Z","Dragon X","Godhuman C","Dragon Z"], "starter":"Open space", "notes":["Time GH around Dragon hits"] },
-    { "tag":"gas_route", "title":"Gas Combo", "inputs":["Godhuman C","Gas Z","Gas F","Gas X","Godhuman Z","Trident Z","Trident X","Gas C","Soul Guitar Z"], "starter":"Mid", "notes":["Layer with pulls"] },
-    { "tag":"dough_basic", "title":"Dough Combo (baseline)", "inputs":["Dough C","Dough X","Dough V","Dough Z"], "starter":"Close", "notes":["Extend with GH/CDK if you have them"] },
-    { "tag":"buddha_easy", "title":"Buddha Combo (easy)", "inputs":["Buddha Z","M1","M1","M1","M1","M1","M1","M1","M1"], "starter":"Close", "notes":["Beginner friendly; predictable"] },
-    { "tag":"kitsune_mix", "title":"Kitsune Combo", "inputs":["Kitsune C","Kitsune X","Yama X","Kitsune Z","Godhuman Z","Godhuman X","Godhuman C"], "starter":"Close", "notes":["Fast pace"] },
-    { "tag":"bomb_simple", "title":"Bomb Combo (Fruit Stats)", "inputs":["Bomb C","Shark Anchor Z"], "starter":"Simple", "notes":["Very short route"] },
-    { "tag":"gravity_yama", "title":"Gravity Combo", "inputs":["Gravity V","Yama X","Gravity Z","Godhuman Z","Godhuman C"], "starter":"Time around meteor", "notes":["Chain early; don’t wait full land"] },
-    { "tag":"dt_dough_eclaw", "title":"DT + Dough + EClaw Route", "inputs":["Dragon Trident X","Dough V","Dough X","Dough C","(Look down)","Electric Claw C","(Look up)","Electric Claw X"], "starter":"Confirm off DT-X", "notes":["Camera control matters"] },
-    { "tag":"eclaw_gravity_gas", "title":"EClaw + Gravity Cane + Gas Route", "inputs":["EClaw C","EClaw Z (Look up)","Gravity Cane Z (Look down)","Kabucha X","Gas X (quick)","Gas Z (quick)","EClaw X (straight)","Gas C"], "starter":"Mid", "notes":["Timing heavy"] },
-    { "tag":"ice_anchor_sa", "title":"Ice + Anchor + SA", "inputs":["Ice V","Ice C","Shark Anchor Z (hold)","Shark Anchor X","Sanguine Art Z","Sanguine Art C","Sanguine Art X"], "starter":"Tip-range", "notes":["Good vs grounded foes"] }
-  ],
-  "counters": [
-    { "enemy":"Buddha", "use":["Portal","Rumble","Blizzard"], "tips":["Stay out of M1 range","Punish missed swings with long-range stuns","Aircamp to deny close trades"] },
-    { "enemy":"Dough", "use":["Cyborg V4","Aircamp","Fast mobility"], "tips":["Disrupt with Cyborg V4","Abuse ground bias by staying airborne","Stay calm and escape windows"] },
-    { "enemy":"Ice", "use":["Aircamp","Portal mobility"], "tips":["Avoid ground trades","Punish endlag of V and Z"] },
-    { "enemy":"Portal", "use":["Patience","Punish cooldowns"], "tips":["Don’t chase rifts blindly","Counter-teleport positioning"] }
-  ],
-  "matchups": [
-    { "mine":"Buddha", "theirs":"Dough", "plan":["Play outside grab","Poke with sword Z","Fake jump then GH X vs Ken"] }
-  ],
-  "builds": [
-    { "label":"Fruit Main – Dough Awa + Sanguine", "stats":{"fruit":2400,"melee":1200,"defense":2400}, "style":"Sanguine Art", "notes":["Beginner friendly, huge stun windows"] },
-    { "label":"Sword Main – Portal + CDK + GH", "stats":{"sword":2400,"melee":1200,"defense":2400}, "style":"Godhuman", "notes":["Mobility + sword confirms"] }
-  ],
-  "guides": {
-    "theory": "Max main damage + Melee + Defense. Keep Aura on to hit elementals. Instinct (Ken) is your main defense—use Ken Tricking to dodge inside combo hit-sequences instead of keeping Ken on forever. Movement wins: dash constantly, use air PvP to counter ground-locked fruits (e.g., Ice). Learn endlag: after enemy skills there’s a punish window. Build styles: Fruit Main, Sword Main, Hybrid (advanced). Races: Angel, Cyborg, Draco, Ghoul, Rabbit each fit certain playstyles. Mindset: spar stronger players, analyze losses, improv combos—not just copy videos."
+  "meta": { "name": "Blox Fruits PvP Assistant", "version": "2.0" },
+
+  "about": {
+    "description": "Use: An intelligent chatbot designed to provide in-depth guidance for Blox Fruits players focused on PvP improvement. It offers tailored strategies, fruit and weapon recommendations, counterplay analysis, and advanced combat techniques to enhance overall performance. Whether you're aiming to increase your bounty or refine your fighting skills, this assistant delivers precise insights to help you excel in every battle.\n\nBlox Fruits PvP Assistant\nThe Blox Fruits PvP Assistant is an intelligent chatbot built to support players in mastering Player vs Player combat within Blox Fruits. It provides real-time tips, tailored strategies, and detailed guidance to help users improve their performance in every encounter.",
+    "key_features": [
+      "PvP Strategy Guidance: Learn advanced combat mechanics, movement patterns, and combo execution.",
+      "Fruit & Weapon Recommendations: Receive personalized suggestions based on your playstyle and setup.",
+      "Counterplay Analysis: Discover effective ways to counter popular fruits, fighting styles, and abilities.",
+      "Build Optimization: Get expert advice on stat distribution, accessories, and fighting combinations.",
+      "Continuous Updates: Information and strategies are kept up-to-date with the latest game changes and metas."
+    ],
+    "operational_guidelines": {
+      "user_interaction": [
+        "Accept open-ended and specific questions (e.g., How do I counter Dough users? What’s the best combo for Portal?).",
+        "Responses should be clear, informative, and tailored to the player’s situation."
+      ],
+      "data_knowledge_base": [
+        "Maintain an up-to-date database of fruits, weapons, styles, and abilities.",
+        "Align PvP strategies and counters with the current game meta."
+      ],
+      "response_behavior": [
+        "Short, actionable answers for quick questions; detailed explanations for complex ones.",
+        "Offer multiple solutions when applicable (e.g., three ways to counter Buddha users).",
+        "Maintain a professional yet friendly tone for all ages."
+      ],
+      "personalization": [
+        "Adapt to user preferences or playstyles (ranged vs. close).",
+        "Optionally store player details (main fruit, bounty) for personalized tips."
+      ],
+      "performance_reliability": [
+        "Fast, consistent responses with accurate data.",
+        "Handle a wide range of PvP topics (combo timing, stat distribution) without outdated info."
+      ]
+    },
+    "general_info": [
+      "Provide combos to the user by extracting combos given by ChatGPT (pre-added below).",
+      "Speak casually without heavy slang; be friendly and clear."
+    ],
+    "fundamentals": [
+      "Stats: Max your main damage stat (Fruit/Sword/Gun) plus Melee and Defense.",
+      "Aura: Keep it on to damage Elemental users.",
+      "Instinct: Main defensive tool; practice Ken Tricking (toggle on/off with timing).",
+      "Movement: Constant dashes, control air space; use terrain.",
+      "Endlag: Punish missed/ended moves; watch cooldowns.",
+      "Builds: Fruit Main, Sword Main, Hybrid (advanced).",
+      "Accessories matter: mobility, dodges, HP."
+    ]
   },
-  "responses": {
-    "style": "casual_clean",
-    "example_greeting": "Bet, I gotcha. I’m your PvP coach — ask for combos, counters, or builds."
-  }
+
+  "combos": [
+    { "title": "Sand Combo", "inputs": ["Sand C", "Sand V", "Shark Anchor Z", "Shark Anchor X", "Sanguine Arts Z", "Sanguine Arts C", "Sanguine Arts X"], "notes": ["Mid difficulty"] },
+    { "title": "Portal Combo", "inputs": ["Portal Z (Optional)", "Shark Anchor Z", "Shark Anchor X", "Sanguine Art Z", "Sanguine Art C", "Sanguine Art X"], "notes": ["Easy to Low-Mid"] },
+    { "title": "Sand Combo #2", "inputs": ["Sand C", "Dragon Trident Z", "Sanguine Art Z", "Sanguine Art C", "Dragon Trident X", "M1 (Optional)", "Sanguine Art X"], "notes": ["Medium-Advanced"] },
+    { "title": "No Fruit (Sword Stats)", "inputs": ["CDK X", "CDK Z", "Godhuman Z", "Godhuman X", "Godhuman C"], "notes": ["Easy"] },
+    { "title": "Yama (Sword Stats)", "inputs": ["Yama X", "Godhuman Z", "Yama Z", "Godhuman C", "Godhuman X"], "notes": ["Medium-Advanced"] },
+    { "title": "Ice Combo (Fruit Stats)", "inputs": ["Ice V", "Unawakened Ice C", "Ice Z", "M1", "M1", "Godhuman X", "Godhuman Z", "Godhuman C"], "notes": ["Medium"] },
+    { "title": "Dragon Combo", "inputs": ["Dragon C", "Spikey Trident X", "Godhuman X", "Godhuman Z", "Dragon X", "Godhuman C", "Dragon Z"] },
+    { "title": "Gas Combo", "inputs": ["Godhuman C", "Gas Z", "Gas F", "Gas X", "Godhuman Z", "Trident Z", "Trident X", "Gas C", "Soul Guitar Z"] },
+    { "title": "Dough Combo", "inputs": ["Dough C", "Dough X", "Dough V", "Dough Z"] },
+    { "title": "Buddha Combo (Easy)", "inputs": ["Buddha Z", "M1", "M1", "M1", "M1", "M1", "M1", "M1", "M1"], "notes": ["Easiest"] },
+    { "title": "Kitsune Combo", "inputs": ["Kitsune C", "Kitsune X", "Yama X", "Kitsune Z", "Godhuman Z", "Godhuman X", "Godhuman C"] },
+    { "title": "Bomb Combo (Fruit Stats)", "inputs": ["Bomb C", "Shark Anchor Z"] },
+    { "title": "Gravity Combo", "inputs": ["Gravity V", "Yama X", "Gravity Z", "Godhuman Z", "Godhuman C"], "notes": ["Start combo just before meteor lands"] },
+    { "title": "DT + Dough + EClaw Route", "inputs": ["Dragon Trident X", "Dough V", "Dough X", "Dough C", "(Look down)", "Electric Claw C", "(Look up)", "Electric Claw X"] },
+    { "title": "EClaw + Gravity Cane + Gas Route", "inputs": ["EClaw C", "EClaw Z (Look up)", "Gravity Cane Z (Look down)", "Kabucha X", "Gas X (Quick)", "Gas Z (Quick)", "EClaw X (Look straight)", "Gas C"] },
+    { "title": "Ice + Anchor + Sanguine", "inputs": ["Ice V", "Ice C", "Shark Anchor Z (hold)", "Shark Anchor X", "Sanguine Art Z", "Sanguine Art C", "Sanguine Art X"] }
+  ],
+
+  "counters": [],
+  "builds": [],
+  "guides": { "theory": "Blox Fruits PvP needs solid mechanics (stats, Aura, Instinct/Ken), movement, air control, cooldown tracking, and Ken Tricking. Dash often, punish endlag, and adapt your playstyle (aggressive/passive/passive-aggressive). Races and accessories change survivability/mobility. Keep learning by sparring and analyzing losses." }
 }
