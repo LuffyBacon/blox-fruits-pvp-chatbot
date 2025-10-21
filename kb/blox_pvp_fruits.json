@@ -1,0 +1,12 @@
+{
+  "fruits": [
+    { "name": "Kitsune", "role": "fruit main", "strengths": ["High damage", "Easy-to-land moves", "Insane mobility"], "weaknesses": ["Punishable on whiff"], "notes": ["Pairs well with Dragon Trident"] },
+    { "name": "Dough (Awakened)", "role": "fruit main", "strengths": ["Excellent stuns", "Huge combo potential"], "weaknesses": ["Ken Tricking without Cyborg V4"], "notes": ["Sanguine Art or Godhuman recommended"] },
+    { "name": "Blizzard", "role": "fruit main / hybrid", "strengths": ["Strong AoE stun + damage"], "weaknesses": ["Lower mobility"], "notes": [] },
+    { "name": "Venom", "role": "fruit main / hybrid", "strengths": ["DoT + defense boosts", "Versatile"], "weaknesses": [], "notes": [] },
+    { "name": "Portal", "role": "sword main support", "strengths": ["Best travel fruit", "Trap with V for combos"], "weaknesses": ["Cooldown punishable"], "notes": ["Perfect for hunting/escape"] },
+    { "name": "Ice (Awakened)", "role": "fruit/sword hybrid", "strengths": ["Long stuns", "Strong poke"], "weaknesses": ["Weak vs aircamp"], "notes": [] },
+    { "name": "Rumble (Awakened)", "role": "fruit main / hybrid", "strengths": ["Incredible stuns", "High AoE damage"], "weaknesses": [], "notes": [] },
+    { "name": "Dark / Quake (for guns)", "role": "gun support", "strengths": ["Reliable stuns to set gun shots"], "weaknesses": ["Needs aim"], "notes": ["Pair with Acidum Rifle, Kabucha, Skull Guitar"] }
+  ]
+}
