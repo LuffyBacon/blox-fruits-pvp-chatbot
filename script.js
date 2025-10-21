@@ -1,8 +1,11 @@
+// script.js — Blox Fruits PvP Assistant (offline, WebGPU)
+// Drop-in replacement
+
 import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
-const msgsEl = document.getElementById('msgs');
-const input  = document.getElementById('q');
-const goBtn  = document.getElementById('go');
+const msgsEl   = document.getElementById('msgs');
+const input    = document.getElementById('q');
+const goBtn    = document.getElementById('go');
 const statusEl = document.getElementById('status');
 
 const ui = {
@@ -18,64 +21,134 @@ const ui = {
 
 // 0) WebGPU check
 if (!('gpu' in navigator)) {
-  ui.status('⚠️ WebGPU not available. Use latest Chrome or Edge on desktop.');
+  ui.status('⚠️ WebGPU not available. Use latest Chrome/Edge on desktop. (Mobile often lacks WebGPU.)');
   goBtn.disabled = true; throw new Error('WebGPU not available');
 }
 
-// 1) Load KB
-let KB = { combos:[], counters:[], matchups:[], guides:{} };
+// 1) Load KB JSON
+let KB = { combos:[], counters:[], matchups:[], builds:[], guides:{} };
 try {
   const r = await fetch('./kb/blox_pvp.json');
   if (!r.ok) throw new Error('kb/blox_pvp.json not found');
   KB = await r.json();
   ui.status('KB loaded. Initializing model (first load downloads files)…');
 } catch (e) {
-  ui.status('❌ Error loading KB: '+e.message);
+  ui.status('❌ Error loading KB: '+e.message+' — ensure kb/blox_pvp.json exists.');
   goBtn.disabled = true; throw e;
 }
 
-// 2) Simple retrieval
-function retrieveContext(query, k=6){
-  const q = query.toLowerCase(), blocks=[];
-  const push = (title, text)=>blocks.push(`### ${title}\n${text}`);
-  for (const c of KB.combos||[]){
-    const hay = `${c.title} ${c.tag||''} ${(c.inputs||[]).join(' ')}`.toLowerCase();
-    const keys = ['dough','buddha','portal','sand','ice','kitsune','gas','dragon','gravity','eclaw','yama','bomb','shark','trident','sanguine'];
-    if (keys.some(k=>q.includes(k)&&hay.includes(k))){
-      push(`Combo: ${c.title}`, `Starter: ${c.starter||'-'}\nInputs: ${(c.inputs||[]).join(' → ')}\nNotes: ${(c.notes||[]).join(' | ')}`);
-    }
-  }
-  for (const ct of KB.counters||[]){
-    if (q.includes((ct.enemy||'').toLowerCase())){
-      push(`Counter vs ${ct.enemy}`, `Use: ${(ct.use||[]).join(', ')}\nTips: ${(ct.tips||[]).join(' | ')}`);
-    }
-  }
-  for (const m of KB.matchups||[]){
-    if (q.includes((m.mine||'').toLowerCase()) && q.includes((m.theirs||'').toLowerCase())){
-      push(`Matchup ${m.mine} vs ${m.theirs}`, `Plan: ${(m.plan||[]).join(' | ')}`);
-    }
-  }
-  if (blocks.length<k && KB.guides?.theory) push('PvP Theory', KB.guides.theory.slice(0,1200));
-  return blocks.slice(0,k).join('\n\n');
+// ---- Searchable corpus (for ANY Blox Fruits questions) ----
+const normalize = s => (s||'').toLowerCase()
+  .replace(/[^a-z0-9\s]/g,' ')
+  .replace(/\s+/g,' ')
+  .trim();
+
+const SYN = {
+  'gh':'godhuman', 'cdk':'cursed dual katana', 'dt':'dragon trident',
+  'ec':'electric claw','eclaw':'electric claw','sa':'sanguine art',
+  'ken':'instinct','haki':'aura'
+};
+
+const expandQuery = (q) => {
+  const words = normalize(q).split(' ').filter(Boolean);
+  const extra = [];
+  for (const w of words) if (SYN[w]) extra.push(SYN[w]);
+  return words.concat(extra);
+};
+
+function mkBlock(title, text, tag='kb'){
+  return { title, text, tag, key: normalize(title+' '+text) };
 }
 
-// 3) System + greeting
-const SYSTEM = `You are the Blox Fruits PvP Assistant. Tone: friendly gamer coach (fun, clean).
-- Prefer the KB context first.
-- Combos: show inputs with arrows (→), a starter, and one ping tip if useful.
-- Counters: 2–3 actions + punish window.
-- Be concise for simple asks; deeper for complex.
-- If missing data, say what you do know and ask a tiny follow-up.`;
+// Build blocks from all KB parts
+const CORPUS = [];
+// Combos
+for (const c of KB.combos||[]){
+  CORPUS.push(mkBlock(
+    `Combo: ${c.title}`,
+    `Starter: ${c.starter||'-'} | Inputs: ${(c.inputs||[]).join(' → ')} | Notes: ${(c.notes||[]).join(' | ')}`,
+    'combo'
+  ));
+}
+// Counters
+for (const ct of KB.counters||[]){
+  CORPUS.push(mkBlock(
+    `Counter vs ${ct.enemy}`,
+    `Use: ${(ct.use||[]).join(', ')} | Tips: ${(ct.tips||[]).join(' | ')}`,
+    'counter'
+  ));
+}
+// Matchups
+for (const m of KB.matchups||[]){
+  CORPUS.push(mkBlock(
+    `Matchup ${m.mine} vs ${m.theirs}`,
+    `Plan: ${(m.plan||[]).join(' | ')}`,
+    'matchup'
+  ));
+}
+// Builds
+for (const b of KB.builds||[]){
+  CORPUS.push(mkBlock(
+    `Build: ${b.label}`,
+    `Stats: ${JSON.stringify(b.stats||{})} | Style: ${b.style||'-'} | Notes: ${(b.notes||[]).join(' | ')}`,
+    'build'
+  ));
+}
+// Guides / theory
+if (KB.guides?.theory) CORPUS.push(mkBlock('PvP Theory', KB.guides.theory, 'guide'));
 
+// Simple fuzzy score: token hits + phrase hits
+function scoreBlock(tokens, block){
+  let score = 0;
+  for (const t of tokens){
+    if (!t) continue;
+    if (block.key.includes(t)) score += 2; // token hit
+  }
+  // bonus for multi-word fruit/style names in query
+  const qJoined = tokens.join(' ');
+  if (qJoined.length > 6 && block.key.includes(qJoined)) score += 3;
+  return score;
+}
+
+function retrieveContext(query, k=8){
+  const tokens = expandQuery(query);
+  const scored = CORPUS
+    .map(b => ({ b, s: scoreBlock(tokens, b) }))
+    .filter(x => x.s > 0)
+    .sort((a,b) => b.s - a.s)
+    .slice(0, k)
+    .map(x => `### ${x.b.title}\n${x.b.text}`);
+  // Fallback if nothing matched: give general theory/help + ask a small follow-up
+  if (scored.length === 0 && KB.guides?.theory){
+    scored.push(`### PvP Theory\n${KB.guides.theory.slice(0, 1200)}`);
+  }
+  return scored.join('\n\n');
+}
+
+// 2) System prompt — answer ANY Blox Fruits questions (PvP focus but not limited)
+const SYSTEM = `
+You are the **Blox Fruits PvP Assistant**. Tone: friendly gamer coach (fun, clean).
+You can answer ANY Blox Fruits question (PvP, fruits, weapons, builds, movement, races, raids basics),
+but prefer PvP coaching. Use the KB context when relevant. If data is missing, answer from general knowledge
+and ask a TINY follow-up (e.g., "PC or Mobile?" or "Fruit or Sword main?").
+
+Formatting rules:
+- For combos: show Inputs with arrows (→), include Starter and 1 ping tip if useful.
+- For counters: give 2–3 clear actions + a punish window.
+- For builds: give stat focus + style + 1–2 accessory notes.
+- Simple question → short answer. Complex → step-by-step tips.
+- Be helpful, precise, and positive. Keep it safe for all ages.
+`;
+
+// 3) Greeting
 ui.add('assistant', "Yo bro! I'm your PvP chatbot specificially designed for Blox Fruits! You can ask me for any help you want.");
 
-// 4) Initialize model (smaller model = faster load)
+// 4) Initialize a valid Web-LLM model (with -MLC suffix)
 let engine;
 const MODEL_CANDIDATES = [
-  // very small, loads quick
-  'Phi-3-mini-4k-instruct-q4f16_1-MLC',
-  // fallback if first fails
-  'Llama-3.2-1B-Instruct-q4f16_1-MLC'
+  'Phi-3-mini-4k-instruct-q4f16_1-MLC',   // fastest to load
+  'Qwen2.5-1.5B-Instruct-q4f16_1-MLC',    // a bit larger
+  'Llama-3.2-1B-Instruct-q4f16_1-MLC'     // also small
 ];
 
 async function initModel(){
@@ -84,27 +157,27 @@ async function initModel(){
       ui.status(`Downloading model: ${name} …`);
       const t0 = performance.now();
       engine = await CreateMLCEngine(name, {
-        initProgressCallback: p => { if (p?.text) ui.status(`${name}: ${p.text}`); },
+        initProgressCallback: p => { if (p?.text) ui.status(`${name}: ${p.text}`); }
       });
       ui.status(`✅ Model ready (${name}) in ${Math.round((performance.now()-t0)/1000)}s. Ask anything!`);
       return;
     } catch (e) {
-      console.warn('model failed:', name, e);
+      console.warn('Model failed:', name, e);
     }
   }
   throw new Error('All model candidates failed to initialize.');
 }
 
-try { await initModel(); } 
+try { await initModel(); }
 catch (e) { ui.status('❌ Failed to init model: '+(e?.message||e)); goBtn.disabled = true; throw e; }
 
 const history = [{ role:'system', content: SYSTEM }];
 
 async function askLLM(userMsg){
-  const context = retrieveContext(userMsg, 6);
+  const context = retrieveContext(userMsg, 8);
   const messages = [
     ...history,
-    { role:'system', content: `KB Context (use this first):\n${context}` },
+    { role:'system', content: `KB Context (use this when helpful):\n${context}` },
     { role:'user', content: userMsg }
   ];
   let reply = '';
@@ -117,7 +190,7 @@ async function askLLM(userMsg){
   return reply;
 }
 
-// 5) Button handler
+// 5) Button handler (no form submit → no page reload)
 goBtn.addEventListener('click', async ()=>{
   const q = input.value.trim(); if (!q) return;
   ui.add('user', q); input.value=''; goBtn.disabled = true;
