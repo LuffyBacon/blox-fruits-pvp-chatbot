@@ -1,4 +1,4 @@
-// script.js — Blox Fruits PvP Assistant (offline, WebGPU; non-streaming fix)
+// script.js — Blox Fruits PvP Assistant (offline, WebGPU; fixed ordering + non-streaming)
 
 import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
@@ -119,20 +119,26 @@ async function initModel(){
 try { await initModel(); }
 catch (e) { ui.status('❌ Failed to init model: '+(e?.message||e)); goBtn.disabled = true; throw e; }
 
-const history = [{ role:'system', content: SYSTEM }];
+// ---- keep the system message first forever ----
+let history = [
+  { role: 'system', content: SYSTEM }
+];
 
-// ---- 5) Ask LLM (NON-STREAMING to avoid async-iterator error) ----
+// ---- 5) Ask LLM (NON-STREAMING, correct message order) ----
 async function askLLM(userMsg){
   const context = retrieveContext(userMsg, 8);
+
+  // Build a fresh messages array with system first, context second, then prior chat, then user
   const messages = [
-    ...history,
+    { role:'system', content: SYSTEM },
     { role:'system', content: `KB Context (use this when helpful):\n${context}` },
+    ...history.filter(m => m.role !== 'system'),
     { role:'user', content: userMsg }
   ];
 
   ui.status('Thinking…');
 
-  // New API shape: engine.chat.completions.create exists → use non-streaming
+  // Modern API (web-llm >= v0.2x)
   if (engine.chat && engine.chat.completions && typeof engine.chat.completions.create === 'function') {
     const res = await engine.chat.completions.create({
       messages,
@@ -146,7 +152,7 @@ async function askLLM(userMsg){
     return reply;
   }
 
-  // Legacy fallback (older web-llm builds)
+  // Legacy fallback (older builds)
   if (typeof engine.chatCompletion === 'function') {
     const res = await engine.chatCompletion({ messages, temperature: 0.2 });
     const reply = res?.choices?.[0]?.message?.content || res?.message?.content || '…';
@@ -172,5 +178,3 @@ goBtn.addEventListener('click', async ()=>{
     goBtn.disabled = false;
   }
 });
-
-
