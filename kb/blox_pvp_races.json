@@ -1,0 +1,10 @@
+{
+  "races": [
+    { "name": "Angel (V4)", "description": "Versatile all-rounder. AoE stuns + reliable healing." },
+    { "name": "Cyborg (V4)", "description": "Strong vs Instinct Tricking. Defensive boosts; disrupts combos." },
+    { "name": "Draco (V4)", "description": "Powerful anti-combo race with debuffing roar." },
+    { "name": "Ghoul (V4)", "description": "Great for aggressive rushdown; speed boost and regen on kill." },
+    { "name": "Rabbit (V4)", "description": "Best for overwhelming speed and evasive play; low defense." },
+    { "name": "Shark (V4)", "description": "High-defense awaken, good for outlasting and mitigating failed combos." }
+  ]
+}
