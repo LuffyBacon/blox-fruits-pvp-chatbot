@@ -1,0 +1,20 @@
+{
+  "combos": [
+    { "title": "Sand Combo", "inputs": ["Sand C", "Sand V", "Shark Anchor Z", "Shark Anchor X", "Sanguine Arts Z", "Sanguine Arts C", "Sanguine Arts X"], "notes": ["Mid difficulty"] },
+    { "title": "Portal Combo", "inputs": ["Portal Z (Optional)", "Shark Anchor Z", "Shark Anchor X", "Sanguine Art Z", "Sanguine Art C", "Sanguine Art X"], "notes": ["Easy to Low-Mid"] },
+    { "title": "Sand Combo #2", "inputs": ["Sand C", "Dragon Trident Z", "Sanguine Art Z", "Sanguine Art C", "Dragon Trident X", "M1 (Optional)", "Sanguine Art X"], "notes": ["Medium-Advanced"] },
+    { "title": "No Fruit (Sword Stats)", "inputs": ["CDK X", "CDK Z", "Godhuman Z", "Godhuman X", "Godhuman C"], "notes": ["Easy"] },
+    { "title": "Yama (Sword Stats)", "inputs": ["Yama X", "Godhuman Z", "Yama Z", "Godhuman C", "Godhuman X"], "notes": ["Medium-Advanced"] },
+    { "title": "Ice Combo (Fruit Stats)", "inputs": ["Ice V", "Unawakened Ice C", "Ice Z", "M1", "M1", "Godhuman X", "Godhuman Z", "Godhuman C"], "notes": ["Medium"] },
+    { "title": "Dragon Combo", "inputs": ["Dragon C", "Spikey Trident X", "Godhuman X", "Godhuman Z", "Dragon X", "Godhuman C", "Dragon Z"], "notes": [] },
+    { "title": "Gas Combo", "inputs": ["Godhuman C", "Gas Z", "Gas F", "Gas X", "Godhuman Z", "Trident Z", "Trident X", "Gas C", "Soul Guitar Z"], "notes": [] },
+    { "title": "Dough Basic", "inputs": ["Dough C", "Dough X", "Dough V", "Dough Z"], "notes": [] },
+    { "title": "Buddha (Beginner)", "inputs": ["Buddha Z", "M1", "M1", "M1", "M1", "M1", "M1", "M1", "M1"], "notes": ["Easiest"] },
+    { "title": "Kitsune Route", "inputs": ["Kitsune C", "Kitsune X", "Yama X", "Kitsune Z", "Godhuman Z", "Godhuman X", "Godhuman C"], "notes": [] },
+    { "title": "Bomb + Anchor", "inputs": ["Bomb C", "Shark Anchor Z"], "notes": [] },
+    { "title": "Gravity Route", "inputs": ["Gravity V", "Yama X", "Gravity Z", "Godhuman Z", "Godhuman C"], "notes": ["Start while meteor about to land"] },
+    { "title": "DT + Dough + EClaw", "inputs": ["Dragon Trident X", "Dough V", "Dough X", "Dough C", "(Look down)", "Electric Claw C", "(Look up)", "Electric Claw X"], "notes": ["Camera control matters"] },
+    { "title": "EClaw + Gravity Cane + Gas", "inputs": ["EClaw C", "EClaw Z (Look up)", "Gravity Cane Z (Look down)", "Kabucha X", "Gas X (Quick)", "Gas Z (Quick)", "EClaw X (Look straight)", "Gas C"], "notes": [] },
+    { "title": "Ice + Anchor + Sanguine", "inputs": ["Ice V", "Ice C", "Shark Anchor Z (hold)", "Shark Anchor X", "Sanguine Art Z", "Sanguine Art C", "Sanguine Art X"], "notes": [] }
+  ]
+}
