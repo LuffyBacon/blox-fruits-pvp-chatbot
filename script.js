@@ -1,4 +1,4 @@
-// script.js — Blox Fruits PvP Assistant (offline, WebGPU)
+// script.js — Blox Fruits PvP Assistant (offline, WebGPU; non-streaming fix)
 
 import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
@@ -20,7 +20,7 @@ const ui = {
 
 // ---- 0) WebGPU check ----
 if (!('gpu' in navigator)) {
-  ui.status('⚠️ WebGPU not available. Use latest Chrome/Edge on desktop. (Mobile often lacks WebGPU.)');
+  ui.status('⚠️ WebGPU not available. Use latest Chrome/Edge on desktop.');
   goBtn.disabled = true; throw new Error('WebGPU not available');
 }
 
@@ -36,7 +36,7 @@ try {
   goBtn.disabled = true; throw e;
 }
 
-// ---- 2) Build a searchable corpus so you can ask ANYTHING about Blox Fruits ----
+// ---- 2) Build a searchable corpus (ask ANYTHING) ----
 const normalize = s => (s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
 const SYN = { gh:'godhuman', cdk:'cursed dual katana', dt:'dragon trident', ec:'electric claw', eclaw:'electric claw', sa:'sanguine art', ken:'instinct', haki:'aura' };
 const expandQuery = (q) => {
@@ -79,11 +79,11 @@ function retrieveContext(query, k=8){
   return scored.join('\n\n');
 }
 
-// ---- 3) System prompt (not limited to certain sentences) ----
+// ---- 3) System prompt ----
 const SYSTEM = `
 You are the **Blox Fruits PvP Assistant**. Tone: friendly gamer coach (fun, clean).
 You can answer ANY Blox Fruits question (PvP focus, but also fruits, weapons, builds, movement, races).
-Prefer the KB context when relevant. If data is missing, answer from general knowledge and ask a tiny follow-up (e.g., "PC or Mobile?").
+Prefer the KB context when relevant. If data is missing, answer from general knowledge and ask a tiny follow-up.
 
 Formatting:
 - Combos: show Inputs with arrows (→), include Starter, add one ping tip if helpful.
@@ -95,11 +95,10 @@ Formatting:
 ui.add('assistant', "Yo bro! I'm your PvP chatbot specificially designed for Blox Fruits! You can ask me for any help you want.");
 
 // ---- 4) Initialize a valid Web-LLM model (with -MLC suffix) ----
-// These IDs are known-good in the Web-LLM registry.
 const MODEL_CANDIDATES = [
-  "Phi-3-mini-4k-instruct-q4f16_1-MLC",   // fastest to load
-  "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",    // a bit larger
-  "Mistral-7B-Instruct-v0.2-q4f16_1-MLC"  // bigger; only if your GPU can handle it
+  "Phi-3-mini-4k-instruct-q4f16_1-MLC",
+  "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+  "Mistral-7B-Instruct-v0.2-q4f16_1-MLC"
 ];
 
 let engine;
@@ -113,9 +112,7 @@ async function initModel(){
       });
       ui.status(`✅ Model ready (${name}) in ${Math.round((performance.now()-t0)/1000)}s. Ask anything!`);
       return;
-    } catch (e) {
-      console.warn('Model failed:', name, e);
-    }
+    } catch (e) { console.warn('Model failed:', name, e); }
   }
   throw new Error('All model candidates failed to initialize.');
 }
@@ -124,6 +121,7 @@ catch (e) { ui.status('❌ Failed to init model: '+(e?.message||e)); goBtn.disab
 
 const history = [{ role:'system', content: SYSTEM }];
 
+// ---- 5) Ask LLM (NON-STREAMING to avoid async-iterator error) ----
 async function askLLM(userMsg){
   const context = retrieveContext(userMsg, 8);
   const messages = [
@@ -131,17 +129,37 @@ async function askLLM(userMsg){
     { role:'system', content: `KB Context (use this when helpful):\n${context}` },
     { role:'user', content: userMsg }
   ];
-  let reply = '';
-  for await (const chunk of engine.chat.completions.create({ messages, stream:true })){
-    const d = chunk.choices?.[0]?.delta?.content;
-    if (d) reply += d;
+
+  ui.status('Thinking…');
+
+  // New API shape: engine.chat.completions.create exists → use non-streaming
+  if (engine.chat && engine.chat.completions && typeof engine.chat.completions.create === 'function') {
+    const res = await engine.chat.completions.create({
+      messages,
+      temperature: 0.2,
+      stream: false
+    });
+    const reply = res?.choices?.[0]?.message?.content || '…';
+    history.push({ role:'user', content:userMsg });
+    history.push({ role:'assistant', content:reply });
+    ui.status('✅ Model ready');
+    return reply;
   }
-  history.push({ role:'user', content:userMsg });
-  history.push({ role:'assistant', content:reply });
-  return reply;
+
+  // Legacy fallback (older web-llm builds)
+  if (typeof engine.chatCompletion === 'function') {
+    const res = await engine.chatCompletion({ messages, temperature: 0.2 });
+    const reply = res?.choices?.[0]?.message?.content || res?.message?.content || '…';
+    history.push({ role:'user', content:userMsg });
+    history.push({ role:'assistant', content:reply });
+    ui.status('✅ Model ready');
+    return reply;
+  }
+
+  throw new Error('Unsupported web-llm API version (no chat.completions.create or chatCompletion).');
 }
 
-// ---- 5) Button handler (no form submit → no page reload) ----
+// ---- 6) Button handler ----
 goBtn.addEventListener('click', async ()=>{
   const q = input.value.trim(); if (!q) return;
   ui.add('user', q); input.value=''; goBtn.disabled = true;
