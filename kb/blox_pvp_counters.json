@@ -1,0 +1,48 @@
+{
+  "counters": [
+    {
+      "enemy": "Buddha",
+      "use": ["Portal", "Rumble", "Blizzard", "Long-range/AoE fruits"],
+      "tips": [
+        "Stay out of M1 range; fight in the air and poke.",
+        "Punish predictable swings and endlag.",
+        "Force movement: make them chase into your stun."
+      ]
+    },
+    {
+      "enemy": "Dough",
+      "use": ["Cyborg V4", "Aircamp", "Fast mobility"],
+      "tips": [
+        "Disrupt with Cyborg V4 to break Instinct tricks.",
+        "Abuse ground bias by staying airborne.",
+        "Don’t panic; there are escape windows between hits."
+      ]
+    },
+    {
+      "enemy": "Ice",
+      "use": ["Aircamp", "Portal mobility"],
+      "tips": [
+        "Avoid ground trades and predictable angles.",
+        "Punish the endlag of V/Z.",
+        "Force them to whiff, then counter."
+      ]
+    },
+    {
+      "enemy": "Portal",
+      "use": ["Patience", "Cooldown bait"],
+      "tips": [
+        "Don’t chase rifts blindly.",
+        "Punish after rift exits or missed gates.",
+        "Hold mobility for the chase—don’t commit early."
+      ]
+    },
+    {
+      "enemy": "Skycampers (general)",
+      "use": ["Portal mobility", "Large AoE", "Godhuman/Skull Guitar"],
+      "tips": [
+        "Control vertical space; snipe landings.",
+        "Use Portal to appear behind and start a fast confirm."
+      ]
+    }
+  ]
+}
