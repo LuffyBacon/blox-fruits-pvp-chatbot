@@ -1,0 +1,39 @@
+{
+  "playstyles": [
+    {
+      "name": "Aggressive",
+      "characteristics": [
+        "High mobility and rushdown",
+        "Combo-focused with reliable starters",
+        "Instinct breaking pressure"
+      ],
+      "example_builds": [
+        "Awakened Dough + Godhuman",
+        "Electric Claw + Angel race"
+      ]
+    },
+    {
+      "name": "Passive",
+      "characteristics": [
+        "Spacing and range control",
+        "Waits for mistakes and punishes endlag",
+        "Cooldown baiting and chip damage"
+      ],
+      "example_builds": [
+        "Awakened Ice poke",
+        "Shark V4 defensive stall"
+      ]
+    },
+    {
+      "name": "Passive-Aggressive",
+      "characteristics": [
+        "Feign passiveness; sudden burst engages",
+        "Ken Tricking and deceptive movement",
+        "Mix-ups to keep enemy guessing"
+      ],
+      "example_builds": [
+        "Portal + Godhuman (teleport behind into confirm)"
+      ]
+    }
+  ]
+}
