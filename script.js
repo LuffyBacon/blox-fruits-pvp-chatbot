@@ -1,9 +1,9 @@
 import { CreateMLCEngine } from 'https://esm.run/@mlc-ai/web-llm';
 
 const msgsEl = document.getElementById('msgs');
-const form = document.getElementById('form');
 const input = document.getElementById('q');
 const goBtn = document.getElementById('go');
+const statusEl = document.getElementById('status');
 
 const ui = {
   add(role, content){
@@ -12,60 +12,79 @@ const ui = {
     div.textContent = content;
     msgsEl.appendChild(div);
     msgsEl.scrollTo({ top: msgsEl.scrollHeight, behavior: 'smooth' });
-  }
+  },
+  status(t){ statusEl.textContent = t; }
 };
 
-// Load KB JSON
-const KB = await fetch('./kb/blox_pvp.json').then(r=>r.json());
+// 0) WebGPU check
+if (!('gpu' in navigator)) {
+  ui.status('⚠️ WebGPU not available. Use latest Chrome/Edge on a device with WebGPU. The bot will not run without it.');
+  goBtn.disabled = true;
+  throw new Error('WebGPU not available');
+}
 
-// Simple keyword retrieval over combos/counters/matchups + theory
+// 1) Load KB JSON safely
+let KB = { combos:[], counters:[], matchups:[], guides:{} };
+try {
+  const res = await fetch('./kb/blox_pvp.json');
+  if (!res.ok) throw new Error('KB not found (kb/blox_pvp.json)');
+  KB = await res.json();
+  ui.status('KB loaded. Initializing model… (first load takes a bit; it will be cached)');
+} catch (e) {
+  ui.status('❌ Error loading KB: ' + e.message + '\nCheck that kb/blox_pvp.json exists and path is correct.');
+  goBtn.disabled = true;
+  throw e;
+}
+
+// 2) Retrieval helper
 function retrieveContext(query, k=6){
   const q = query.toLowerCase();
   const blocks = [];
   const push = (title, text) => blocks.push(`### ${title}\n${text}`);
 
-  // Combos
   for (const c of KB.combos||[]){
     const hay = `${c.title} ${c.tag||''} ${(c.inputs||[]).join(' ')}`.toLowerCase();
-    const hit = ['dough','buddha','portal','sand','ice','kitsune','gas','dragon','gravity','eclaw','yama','bomb','shark','trident','sanguine']
-      .some(k => q.includes(k) && hay.includes(k));
-    if (hit) push(`Combo: ${c.title}`,
-      `Starter: ${c.starter||'-'}\nInputs: ${(c.inputs||[]).join(' → ')}\nNotes: ${(c.notes||[]).join(' | ')}`);
-  }
-  // Counters
-  for (const ct of KB.counters||[]){
-    if (q.includes(ct.enemy.toLowerCase())){
-      push(`Counter vs ${ct.enemy}`,
-        `Use: ${(ct.use||[]).join(', ')}\nTips: ${(ct.tips||[]).join(' | ')}`);
+    const keys = ['dough','buddha','portal','sand','ice','kitsune','gas','dragon','gravity','eclaw','yama','bomb','shark','trident','sanguine'];
+    if (keys.some(k=>q.includes(k)&&hay.includes(k))) {
+      push(`Combo: ${c.title}`, `Starter: ${c.starter||'-'}\nInputs: ${(c.inputs||[]).join(' → ')}\nNotes: ${(c.notes||[]).join(' | ')}`);
     }
   }
-  // Matchups
+  for (const ct of KB.counters||[]){
+    if (q.includes(ct.enemy?.toLowerCase?.()||'')) {
+      push(`Counter vs ${ct.enemy}`, `Use: ${(ct.use||[]).join(', ')}\nTips: ${(ct.tips||[]).join(' | ')}`);
+    }
+  }
   for (const m of KB.matchups||[]){
-    const pair = `${m.mine} ${m.theirs}`.toLowerCase();
-    if (q.includes(m.mine.toLowerCase()) && q.includes(m.theirs.toLowerCase())){
+    if (q.includes(m.mine?.toLowerCase?.()||'') && q.includes(m.theirs?.toLowerCase?.()||'')) {
       push(`Matchup ${m.mine} vs ${m.theirs}`, `Plan: ${(m.plan||[]).join(' | ')}`);
     }
   }
-  // Theory fallback
   if (blocks.length<k && KB.guides?.theory) push('PvP Theory', KB.guides.theory.slice(0,1200));
   return blocks.slice(0,k).join('\n\n');
 }
 
-// === System style (your tone + greeting) ===
-const SYSTEM = `You are the Blox Fruits PvP Assistant. Tone: friendly gamer coach (fun, clean language).
-Rules:
-- Prefer facts from the provided KB context first.
-- For combos: show inputs with arrows (→), a starter, and 1 ping tip if useful.
-- For counters: give 2–3 clear actions and a punish window.
-- Be concise for simple asks; go deeper for complex ones.
-- If missing data, say what you do know and ask for a tiny follow-up (e.g., “PC or Mobile?”).
-`;
+// 3) System + greeting
+const SYSTEM = `You are the Blox Fruits PvP Assistant. Tone: friendly gamer coach (fun, clean).
+- Prefer the KB context first.
+- Combos: show inputs with arrows (→), a starter, + 1 ping tip if useful.
+- Counters: give 2–3 clear actions + punish window.
+- Be concise for simple asks; deeper for complex.
+- If missing data, say what you do know and ask a tiny follow-up.`;
 
 ui.add('assistant', "Yo bro! I'm your PvP chatbot specificially designed for Blox Fruits! You can ask me for any help you want.");
 
-const engine = await CreateMLCEngine('Llama-3.2-1B-Instruct-q4f16_1', {
-  initProgressCallback: p => { if (p?.text) ui.add('assistant', p.text); }
-});
+// 4) Init model with progress
+let engine;
+try {
+  engine = await CreateMLCEngine('Llama-3.2-1B-Instruct-q4f16_1', {
+    initProgressCallback: p => { if (p?.text) ui.status(p.text); }
+  });
+  ui.status('Model ready! Ask anything.');
+} catch (e) {
+  ui.status('❌ Failed to initialize the model: ' + (e?.message||e));
+  goBtn.disabled = true;
+  throw e;
+}
 
 const history = [{ role:'system', content: SYSTEM }];
 
@@ -77,17 +96,17 @@ async function askLLM(userMsg){
     { role:'user', content: userMsg }
   ];
   let reply = '';
-  for await (const chunk of engine.chat.completions.create({ messages, stream: true })){
+  for await (const chunk of engine.chat.completions.create({ messages, stream:true })) {
     const d = chunk.choices?.[0]?.delta?.content;
-    if (d){ reply += d; }
+    if (d) reply += d;
   }
-  history.push({ role:'user', content: userMsg });
-  history.push({ role:'assistant', content: reply });
+  history.push({ role:'user', content:userMsg });
+  history.push({ role:'assistant', content:reply });
   return reply;
 }
 
-form.addEventListener('submit', async (e)=>{
-  e.preventDefault();
+// 5) Click handler (no form submit → no page refresh)
+goBtn.addEventListener('click', async ()=>{
   const q = input.value.trim(); if (!q) return;
   ui.add('user', q); input.value = ''; goBtn.disabled = true;
   try {
@@ -99,3 +118,4 @@ form.addEventListener('submit', async (e)=>{
     goBtn.disabled = false;
   }
 });
+
