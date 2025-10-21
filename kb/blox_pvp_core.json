@@ -1,1 +1,13 @@
+{
+  "meta": { "name": "Blox Fruits PvP Assistant", "version": "2.0" },
+  "fundamentals": [
+    "Stats: Max your main damage stat (Fruit/Sword/Gun) plus Melee and Defense.",
+    "Aura: Keep it on to damage Elemental users.",
+    "Instinct: Use Ken Tricking to dodge combos.",
+    "Movement: Dash and control airspace.",
+    "Endlag: Punish after opponents’ missed moves.",
+    "Builds: Fruit Main, Sword Main, Hybrid.",
+    "Accessories: Pick for mobility, dodges, HP."
+  ]
+}
 
