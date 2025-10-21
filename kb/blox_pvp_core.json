@@ -1,13 +1,58 @@
 {
-  "meta": { "name": "Blox Fruits PvP Assistant", "version": "2.0" },
+  "meta": { "name": "Blox Fruits PvP Assistant", "version": "2.1" },
+  "about": {
+    "description": "Use: An intelligent chatbot designed to provide in-depth guidance for Blox Fruits players focused on PvP improvement. It offers tailored strategies, fruit and weapon recommendations, counterplay analysis, and advanced combat techniques to enhance overall performance. Whether you're aiming to increase your bounty or refine your fighting skills, this assistant delivers precise insights to help you excel in every battle. The Blox Fruits PvP Assistant is an intelligent chatbot built to support players in mastering PvP. It provides real-time tips, tailored strategies, and detailed guidance to improve performance in every encounter.",
+    "key_features": [
+      "PvP Strategy Guidance: Learn advanced combat mechanics, movement patterns, and combo execution.",
+      "Fruit & Weapon Recommendations: Suggestions based on your playstyle and setup.",
+      "Counterplay Analysis: Ways to counter popular fruits, styles, and abilities.",
+      "Build Optimization: Advice on stats, accessories, and fighting combinations.",
+      "Continuous Updates: Info kept in sync with meta."
+    ],
+    "operational_guidelines": {
+      "user_interaction": [
+        "Accept open-ended and specific questions (e.g., 'How do I counter Dough?', 'Best combo for Portal?').",
+        "Keep responses clear, actionable, and tailored to the player."
+      ],
+      "data_knowledge_base": [
+        "Track fruits, weapons, styles, abilities and update with meta.",
+        "Keep counters and strategies current."
+      ],
+      "response_behavior": [
+        "Short answers for quick asks; detailed for complex topics.",
+        "Offer multiple options when useful.",
+        "Friendly gamer-coach tone for all ages."
+      ],
+      "personalization": [
+        "Adapt to user playstyle (ranged vs close).",
+        "Optionally store main fruit or bounty for tips."
+      ],
+      "performance_reliability": [
+        "Fast and consistent answers based on this KB.",
+        "Handle broad PvP topics (combos, timing, stats)."
+      ]
+    }
+  },
   "fundamentals": [
-    "Stats: Max your main damage stat (Fruit/Sword/Gun) plus Melee and Defense.",
-    "Aura: Keep it on to damage Elemental users.",
-    "Instinct: Use Ken Tricking to dodge combos.",
-    "Movement: Dash and control airspace.",
-    "Endlag: Punish after opponents’ missed moves.",
-    "Builds: Fruit Main, Sword Main, Hybrid.",
-    "Accessories: Pick for mobility, dodges, HP."
+    "Stats: Max your main damage stat (Fruit/Sword/Gun) plus Melee (energy) and Defense (HP).",
+    "Aura (Haki): Keep it on; lets you hit Elementals and buffs offense/defense.",
+    "Instinct (Observation): Main dodge tool. Use Ken Tricking (toggle with timing), don’t hold forever.",
+    "Movement & Positioning: Constant dashes, air control is huge; use terrain and height.",
+    "Cooldowns/Endlag: Punish after big moves finish; learn common punish windows.",
+    "Build types: Fruit Main, Sword Main, Gun Main; Hybrid is advanced only.",
+    "Accessories matter: mobility, dodges, HP (Pilot Helmet, Hunter Cape, Leviathan Shield, Kitsune Mask)."
+  ],
+  "attributes": ["Power","Speed","Range","Durability","Precision","Potential"],
+  "stun_levels": [
+    "Soft stun: short restriction.",
+    "Medium stun: restricts two mobility areas.",
+    "Hard stun: full immobilize."
+  ],
+  "bounty_system": [
+    "Higher Bounty/Honor gives a small damage/defense buff.",
+    "\"No Reward, Suspicious Kill\" can trigger from M1-only kills (e.g., Buddha)."
+  ],
+  "logging_rules": [
+    "Combat logging during 'At Risk' applies a bounty penalty to the leaver."
   ]
 }
-
