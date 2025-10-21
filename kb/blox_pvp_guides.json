@@ -1,0 +1,15 @@
+{
+  "guides": {
+    "theory": "PvP requires mechanics (stats, Aura, Instinct/Ken), movement, air control, cooldown punishes, and Ken Tricking. Keep Aura on; don't hold Instinct forever. Dash constantly. Use terrain/high ground. Learn endlag timings and punish.",
+    "ken_tricking": "Toggle Instinct on/off during/ between multi-hit or Instinct-breaking moves to escape or reduce damage. Master the timing via sparring; Cyborg V4 is an effective counter.",
+    "movement": "Continuous dashes, unpredictable paths, camera control. Air PvP beats ground-locked fruits (e.g., Ice).",
+    "endlag": "Every big move has a vulnerable window after use. Bait a whiff, then start a fast stun into your combo.",
+    "team_pvp": "In crew wars, Portal is extremely valuable for team mobility and large AoE control. Control terrain and vertical space.",
+    "counters_summary": "Buddha: outrange + aircamp and punish M1 spam. Dough: Cyborg V4 disruption; take fights airborne. Ice: avoid ground trades; punish V/Z endlag. Portal: bait cooldowns; punish after rift exits. Skycampers: use Portal mobility, AoE, Skull/Godhuman confirms.",
+    "mindset": "Don’t rely only on videos; improvise combos from core mechanics. Analyze losses without tilt. Spar frequently, including higher bounty players. Keep a positive attitude and have fun.",
+    "bounty_system": "Higher Bounty/Honor grants a small damage/defense buff. 'No Reward, Suspicious Kill' can happen with M1-only kills (often Buddha).",
+    "combat_logging": "Leaving during combat triggers a bounty penalty when 'At Risk' is active.",
+    "accessories": "Accessories affect mobility, dodges, HP. Common picks: Pilot Helmet, Hunter Cape, Leviathan Shield, Kitsune Mask.",
+    "stat_distribution": "Fruit Main: max Fruit/Melee/Defense. Sword Main: max Sword/Melee/Defense. Hybrid is advanced only."
+  }
+}
