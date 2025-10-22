@@ -75,24 +75,23 @@
 </head>
 <body>
   <div class="card">
-    <header>
-      <div class="logo" aria-hidden="true"></div>
-      <div class="title">
-        <h1>Blox GPT</h1>
-        <div class="subtitle">Specialized in Blox Fruits PvP</div>
-      </div>
-    </header>
+ <header style="text-align:center; margin: 18px 0 10px;">
+  <h1 class="title-rainbow">Blox GPT</h1>
+  <p class="subtitle">Specialized in Blox Fruits PvP</p>
+</header>
 
-    <section id="chat">
-      <div id="msgs">
-        <div class="msg bot">Yo bro 👋 I’m Blox GPT — your PvP assistant! Ask me anything about Blox Fruits combos, playstyles, or meta tips.</div>
-      </div>
-      <div class="compose">
-        <input id="user" placeholder="Type here… e.g., portal combo mobile, or how to counter dough?" />
-        <button id="send">Send</button>
-      </div>
-    </section>
-    <div class="hint">Try: “teach me ken tricking” • “passive vs aggressive” • “counter dough” • “portal combo (mobile)” • “elaborate”</div>
+<div class="chat-box" id="chat-box">
+  <div class="msg bot">
+    Yo bro 👋 I’m Blox GPT — your PvP assistant! Ask me anything about Blox Fruits combos, playstyles, or meta tips.
+  </div>
+</div>
+
+<div class="input-area">
+  <input id="user-input" placeholder="Type your message..." />
+  <button id="send-btn">Send</button>
+</div>
+   
+        <div class="hint">Try: “teach me ken tricking” • “passive vs aggressive” • “counter dough” • “portal combo (mobile)” • “elaborate”</div>
   </div>
 
   <script>
