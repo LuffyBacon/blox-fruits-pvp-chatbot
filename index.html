@@ -1,236 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blox GPT</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{
-      min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-      gap:22px; padding:40px 20px; background: radial-gradient(1000px 600px at 50% -10%, #140034 0%, transparent 60%),
-                                      radial-gradient(900px 600px at 100% 0%, #3a0066 0%, transparent 60%),
-                                      linear-gradient(180deg,#090014,#050010);
-      color:#fff; font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial;
+    body {
+      background: radial-gradient(1200px at center top, #0a0020, #050010);
+      color: #fff;
+      font-family: Poppins, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+      min-height: 100vh;
     }
-    .card{
-      width:min(900px,94vw);
-      border-radius:24px; padding:28px 26px;
-      background: rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.10);
-      position:relative; overflow:hidden;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset, 0 30px 80px rgba(0,0,0,0.45);
+    h1 {
+      font-size: 64px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #00eaff, #ff00f7, #ffef00, #00ff9d, #00eaff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 400% 400%;
+      animation: hue 5s linear infinite;
+      text-shadow: 0 0 25px rgba(0, 234, 255, 0.3);
+      margin: 0;
     }
-    .card::before{
-      content:""; position:absolute; inset:-2px; border-radius:26px; padding:2px;
-      background: conic-gradient(from 0deg, #00eaff, #7a5cff, #ff51e1, #ffd166, #29f19c, #00eaff);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude;
-      animation: spin 9s linear infinite; filter: blur(8px); opacity:.8;
+    @keyframes hue {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
     }
-    @keyframes spin{to{transform:rotate(360deg)}}
-
-    header{display:flex; align-items:center; gap:14px; margin-bottom:10px}
-    .logo{
-      width:58px; height:58px; border-radius:16px; background:#0e0e22;
-      box-shadow: 0 0 28px #00eaff55, 0 0 36px #ff51e155; position:relative; overflow:hidden;
+    p.subtitle {
+      color: #aefcff;
+      font-size: 22px;
+      margin-top: 6px;
+      text-shadow: 0 0 10px rgba(0,255,255,.25);
     }
-    .logo::after{content:""; position:absolute; inset:0;
-      background: radial-gradient(circle at 30% 30%, #00eaff, transparent 60%),
-                  radial-gradient(circle at 70% 70%, #ff51e1, transparent 60%);}
-    .title{display:flex; flex-direction:column}
-    h1{
-      margin:0; font-size:42px; font-weight:900; letter-spacing:.5px;
-      background: linear-gradient(90deg, #00eaff, #7a5cff, #ff51e1, #ffd166, #29f19c, #00eaff);
-      background-size:200% auto; -webkit-background-clip:text; color:transparent;
-      animation: hue 6s linear infinite; text-shadow: 0 0 18px rgba(0,234,255,0.35), 0 0 24px rgba(255,81,225,0.25);
+    #chat-box {
+      width: 900px;
+      max-width: 94vw;
+      height: 420px;
+      background: rgba(15, 15, 40, 0.7);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 0 25px rgba(0,234,255,0.15);
+      padding: 16px;
+      overflow-y: auto;
+      margin-top: 20px;
     }
-    @keyframes hue{0%{background-position:0%}100%{background-position:200%}}
-    .subtitle{ color:#aefaff; font-weight:600; margin-top:2px }
-
-    #chat{
-      display:grid; grid-template-rows: 1fr auto; gap:12px; height: 54vh;
-      background: linear-gradient(180deg, rgba(18,18,42,.7), rgba(10,10,28,.7));
-      border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:14px;
+    .msg {
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 12px;
+      max-width: 80%;
+      white-space: pre-wrap;
     }
-    #msgs{
-      overflow:auto; padding-right:6px; scroll-behavior:smooth;
+    .user {
+      background: rgba(0,234,255,0.15);
+      margin-left: auto;
     }
-    .msg{padding:10px 14px; margin:10px 0; border-radius:12px; max-width:88%; white-space:pre-wrap}
-    .me { margin-left:auto; background: rgba(0,234,255,0.14); border:1px solid rgba(0,234,255,0.35) }
-    .bot{ background: rgba(122,92,255,0.12); border:1px solid rgba(122,92,255,0.35) }
-    .compose{display:flex; gap:10px}
-    .compose input{
-      flex:1; padding:14px; border-radius:12px; outline:none;
-      background:#12122a; color:#fff; border:1px solid rgba(255,255,255,0.12);
+    .bot {
+      background: rgba(255,0,247,0.10);
+      border: 1px solid rgba(255,0,247,0.25);
     }
-    .compose button{
-      padding:12px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.14);
-      background: linear-gradient(90deg, #00eaff, #7a5cff, #ff51e1); color:#001018; font-weight:800; cursor:pointer;
-      box-shadow: 0 6px 22px #00eaff44, 0 6px 22px #ff51e144; text-transform:uppercase; letter-spacing:.6px;
+    .input-area {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 900px;
+      max-width: 94vw;
+      margin-top: 12px;
     }
-    .hint{ margin-top:10px; color:#bfefff; opacity:.8; font-size:13px }
-    @media (max-width:700px){ h1{font-size:30px} #chat{height:60vh} }
+    .input-area input {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(20,20,50,.8);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+    .input-area button {
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(90deg, #00eaff, #ff00f7, #ffef00);
+      color: #050010;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .input-area button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 25px rgba(0,234,255,.5);
+    }
+    .hint {
+      text-align: center;
+      margin-top: 14px;
+      color: #bfefff;
+      opacity: .8;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
- <header style="text-align:center; margin: 18px 0 10px;">
-  <h1 class="title-rainbow">Blox GPT</h1>
+  <h1>Blox GPT</h1>
   <p class="subtitle">Specialized in Blox Fruits PvP</p>
-</header>
 
-<div class="chat-box" id="chat-box">
-  <div class="msg bot">
-    Yo bro 👋 I’m Blox GPT — your PvP assistant! Ask me anything about Blox Fruits combos, playstyles, or meta tips.
+  <div id="chat-box">
+    <div class="msg bot">
+      Yo bro 👋 I’m Blox GPT — your PvP assistant! Ask me anything about Blox Fruits combos, playstyles, or meta tips.
+    </div>
   </div>
-</div>
 
-<div class="input-area">
-  <input id="user-input" placeholder="Type your message..." />
-  <button id="send-btn">Send</button>
-</div>
-   
-        <div class="hint">Try: “teach me ken tricking” • “passive vs aggressive” • “counter dough” • “portal combo (mobile)” • “elaborate”</div>
+  <div class="input-area">
+    <input id="user-input" placeholder="Type your message..." />
+    <button id="send-btn">Send</button>
   </div>
+
+  <p class="hint">
+    Try: “teach me ken tricking” • “passive vs aggressive” • “counter dough” • “portal combo (mobile)” • “elaborate”
+  </p>
 
   <script>
-    // ==== Minimal smart replies (no AI, no lag) ====
-    const msgs = document.getElementById('msgs');
-    const user = document.getElementById('user');
-    const send = document.getElementById('send');
+    const chatBox = document.getElementById("chat-box");
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
 
-    function add(role, text){
-      const div = document.createElement('div');
-      div.className = 'msg ' + (role === 'user' ? 'me' : 'bot');
+    function addMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
       div.textContent = text;
-      msgs.appendChild(div);
-      msgs.scrollTop = msgs.scrollHeight;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Tiny intent engine
     let lastIntent = null;
-    const N = s => (s||'').toLowerCase();
+    const N = s => (s || "").toLowerCase();
 
-    function replyFor(raw){
-      const q = N(raw);
-
-      // greetings / small talk
-      if (/(yo|yoo|wsp|sup|hello|hey|hi)\\b/.test(q)) {
-        lastIntent = 'greet';
-        return 'Yo! Wanna work on combos, counters, or playstyle drills?';
+    function reply(qRaw) {
+      const q = N(qRaw);
+      if (/(yo|hey|hello|wsp|sup)/.test(q)) return "Yo bro 👋 how’s bounty grind going?";
+      if (/passive|aggressive/.test(q)) {
+        lastIntent = "playstyle";
+        return "🔥 Passive vs Aggressive:\n• Aggro = Rushdown combos & pressure.\n• Passive = Bait, punish, and control spacing.\nMix them so your opponent never predicts.";
       }
-      if (/(thanks|thank you|ur cool|you\\'re cool|love u|nice)/.test(q)) {
-        lastIntent = 'nice';
-        return 'Appreciate it 😎 now let’s cook some PvP wins.';
+      if (/ken.?trick/.test(q)) {
+        lastIntent = "ken";
+        return "⚡ Ken Tricking basics:\n1) Keep Instinct OFF.\n2) Toggle ON right before a stun hit.\n3) Cancel fast to save dodges.\n4) Counter during endlag.";
       }
-
-      // playstyles
-      if (/(passive|aggressive)(.*playstyle|style)?/.test(q)) {
-        lastIntent = 'playstyles';
-        return [
-          '🔥 Passive vs Aggressive:',
-          '• Aggressive → Rushdown. Fast starters, break Ken, punish endlag.',
-          '• Passive → Bait & punish. Keep range, poke, then counter on whiff.',
-          '👉 Mix both mid-fight so you’re unpredictable.'
-        ].join('\\n');
+      if (/elaborate|more|explain/.test(q)) {
+        if (lastIntent === "ken")
+          return "💥 Advanced Ken Tricking:\nWatch animations, time toggle on multi-hits like Dough V or Dragon C.\nDash cancel and punish after endlag.";
+        if (lastIntent === "playstyle")
+          return "🧩 Playstyle drills:\n• Aggro: Engage first & break Ken.\n• Passive: Only punish mistakes.\nMix both to confuse your opponent.";
+        return "What do you want me to elaborate on bro? 😎";
       }
-
-      // Ken Tricking
-      if (/ken.?trick|instinct trick|teach.*ken/.test(q)) {
-        lastIntent = 'kentrick';
-        return [
-          '⚡ Ken Tricking (how):',
-          '1) Keep Instinct OFF.',
-          '2) Toggle ON right as a multi-hit/stun starts to absorb safely.',
-          '3) Toggle OFF instantly to save dodges.',
-          '4) Counter during endlag (e.g., GH Z → C → X).',
-          'Practice vs Dough V / Ice V / Rumble stuns.'
-        ].join('\\n');
+      if (/combo|route/.test(q)) {
+        if (/portal/.test(q))
+          return "🌀 Portal combo (mobile-friendly):\nPortal Z → Anchor Z → Sanguine Z → Sanguine C → Sanguine X";
+        return "⚔️ Try these combos:\n• Sand C → Sand V → Anchor Z → Anchor X → Sanguine Z → C → X\n• Ice V → Ice C → Ice Z → GH X → GH Z → GH C";
       }
-
-      // elaborate
-      if (/elaborate|more detail|go deeper|explain more|detail/.test(q)) {
-        if (lastIntent === 'kentrick') {
-          return [
-            '💥 Ken Tricking — deeper:',
-            '• Watch animation/sound cues; don’t spam toggles.',
-            '• Time it for big AoEs like Dragon C / Dough V.',
-            '• After baited hit: dash-cancel → starter to punish.',
-            '• Cyborg V4 can break Ken loops — disengage & reset.'
-          ].join('\\n');
-        }
-        if (lastIntent === 'playstyles') {
-          return [
-            '🧩 Playstyle drills:',
-            '• Aggro: 10 rounds where you must first-engage & punish endlag.',
-            '• Passive: 10 rounds only reacting — no first strike.',
-            '• Review 1 mistake per round and fix it next round.'
-          ].join('\\n');
-        }
-        return 'Tell me what to go deeper on — Ken Tricking, playstyles, combos, or counters?';
+      if (/counter|vs|beat/.test(q)) {
+        if (/buddha/.test(q))
+          return "🙏 Vs Buddha:\nStay out of M1 range, poke from distance, punish their endlag.";
+        if (/dough/.test(q))
+          return "🍩 Vs Dough:\nStay airborne, punish after missed C, or use Cyborg V4 Aftershock to break combos.";
+        return "Who you fighting — Buddha, Dough, or someone else?";
       }
-
-      // combos
-      if (/combo|route/.test(q) || /portal.*combo/.test(q)) {
-        lastIntent = 'combos';
-        if (/portal/.test(q)) {
-          return [
-            '🌀 Portal (mobile-friendly):',
-            'Portal Z → Shark Anchor Z → Sanguine Z → Sanguine C → Sanguine X',
-            'Tip: Keep camera level after Anchor Z so Sanguine connects clean.'
-          ].join('\\n');
-        }
-        return [
-          '⚔️ Try these routes:',
-          '• Sand C → Sand V → Anchor Z → Anchor X → Sanguine Z → C → X',
-          '• Ice V → Unawakened Ice C → Ice Z → GH X → GH Z → GH C',
-          '• DT X → Dough V → Dough X → Dough C → EClaw C → EClaw X',
-          'Say your fruit and I’ll tailor it.'
-        ].join('\\n');
-      }
-
-      // counters
-      if (/counter|how to beat|how do i beat|\\bvs\\b/.test(q)) {
-        lastIntent = 'counters';
-        if (/\\bbuddha\\b/.test(q)) {
-          return [
-            '🙏 Vs Buddha:',
-            '• Stay out of M1 range; poke from distance.',
-            '• Air-camp when needed; punish after Z\'s endlag.',
-            '• Don’t chase — make them whiff first.'
-          ].join('\\n');
-        }
-        if (/\\bdough\\b/.test(q)) {
-          return [
-            '🍩 Vs Dough:',
-            '• Stay airborne — many routes are ground-based.',
-            '• Cyborg V4 Aftershock can interrupt.',
-            '• Wait for animation endlag, then punish fast.'
-          ].join('\\n');
-        }
-        return 'Who you fighting — Buddha, Dough, Ice, or someone else?';
-      }
-
-      // accuracy guards
-      if (/(sprite|balanced team)/i.test(q)) return 'There’s no Sprite race, and PvP is 1v1 — builds & execution matter.';
-      if (/(haki|instinct)/i.test(q)) return 'Aura (Haki) lets you hit Elemental users; it doesn’t add damage. Instinct helps Ken Tricking/dodging, not power.';
-
-      // fallback
-      lastIntent = 'misc';
-      return 'Bet bro 💪 Ask me about combos, counters, Ken Tricking, or playstyles to get started!';
+      return "Bet bro 💪 ask me about combos, counters, Ken Tricking, or playstyles.";
     }
 
-    function sendNow(){
-      const t = user.value.trim(); if(!t) return;
-      add('user', t); user.value = '';
-      const out = replyFor(t);
-      // Tiny delay for vibe
-      setTimeout(()=> add('bot', out), 150);
+    function sendNow() {
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage("user", text);
+      input.value = "";
+      const out = reply(text);
+      setTimeout(() => addMessage("bot", out), 150);
     }
 
-    send.addEventListener('click', sendNow);
-    user.addEventListener('keydown', e => { if (e.key === 'Enter') sendNow(); });
+    sendBtn.addEventListener("click", sendNow);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendNow(); });
   </script>
 </body>
 </html>
