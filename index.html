@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Blox GPT</title>
   <style>
     * {
@@ -13,34 +13,35 @@
     body {
       height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: radial-gradient(circle at 30% 30%, #090014, #000010);
-      color: #fff;
+      background: radial-gradient(circle at 50% 50%, #0b0018, #050010);
       font-family: "Poppins", sans-serif;
+      color: #fff;
       overflow: hidden;
     }
 
-    .container {
+    .glow-box {
       text-align: center;
       padding: 40px 60px;
-      border-radius: 20px;
-      background: rgba(10, 10, 25, 0.6);
+      border-radius: 25px;
+      background: rgba(25, 25, 60, 0.4);
       box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 2px solid transparent;
+      background-clip: padding-box;
       position: relative;
+      margin-bottom: 30px;
     }
-
-    /* Rainbow border glow */
-    .container::before {
+    .glow-box::before {
       content: "";
       position: absolute;
-      inset: -3px;
-      border-radius: 23px;
+      inset: -4px;
+      border-radius: 30px;
       background: linear-gradient(270deg, #00eaff, #ff00f7, #ffef00, #00ff9d, #00eaff);
       background-size: 400% 400%;
-      z-index: -1;
       filter: blur(10px);
+      z-index: -1;
       animation: rainbowBorder 6s linear infinite;
     }
     @keyframes rainbowBorder {
@@ -49,51 +50,137 @@
     }
 
     h1 {
-      font-size: 60px;
+      font-size: 64px;
       font-weight: 900;
       background: linear-gradient(90deg, #00eaff, #ff00f7, #ffef00, #00ff9d, #00eaff);
       background-size: 400% 400%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: textGlow 4s linear infinite;
-      text-shadow: 0 0 25px rgba(0, 234, 255, 0.3);
     }
-
     @keyframes textGlow {
       0% { background-position: 0% 50%; }
       100% { background-position: 100% 50%; }
     }
-
     p {
       margin-top: 20px;
       font-size: 22px;
-      font-weight: 500;
-      color: #a0faff;
-      text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-      letter-spacing: 1px;
+      color: #aefcff;
+    }
+    .chat-box {
+      width: 600px;
+      max-width: 90%;
+      height: 300px;
+      background: rgba(15, 15, 40, 0.6);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      overflow-y: auto;
+      padding: 15px;
+      box-shadow: 0 0 20px rgba(0, 234, 255, 0.2) inset;
+      margin-bottom: 15px;
+      scroll-behavior: smooth;
+    }
+    .msg {
+      padding: 10px 14px;
+      margin: 8px 0;
+      border-radius: 12px;
+      max-width: 80%;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .msg.user {
+      background: rgba(0, 234, 255, 0.15);
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .msg.bot {
+      background: rgba(255, 0, 247, 0.1);
+      border: 1px solid rgba(255, 0, 247, 0.2);
     }
 
-    .glow-line {
-      margin: 25px auto;
-      height: 3px;
-      width: 60%;
-      border-radius: 5px;
-      background: linear-gradient(90deg, #00eaff, #ff00f7, #ffef00, #00ff9d, #00eaff);
-      background-size: 400% 400%;
-      animation: glowLine 5s linear infinite;
-      box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
+    .input-area {
+      display: flex;
+      gap: 10px;
+      width: 600px;
+      max-width: 90%;
     }
-    @keyframes glowLine {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
+    input {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(20, 20, 50, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+    button {
+      padding: 14px 22px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      background: linear-gradient(90deg, #00eaff, #ff00f7, #ffef00);
+      color: #050010;
+      box-shadow: 0 0 15px rgba(0, 234, 255, 0.3);
+      transition: 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0, 234, 255, 0.5);
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="glow-box">
     <h1>Blox GPT</h1>
-    <div class="glow-line"></div>
     <p>Specialized in Blox Fruits PvP</p>
   </div>
+
+  <div class="chat-box" id="chat-box">
+    <div class="msg bot">Yo bro 👋 I’m Blox GPT — your PvP assistant! Ask me anything about Blox Fruits combos, playstyles, or meta tips.</div>
+  </div>
+
+  <div class="input-area">
+    <input id="user-input" placeholder="Type your message..." />
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const input = document.getElementById("user-input");
+    const btn = document.getElementById("send-btn");
+
+    function addMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.textContent = text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    btn.addEventListener("click", () => {
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage("user", text);
+      input.value = "";
+
+      // Fake bot reply for now
+      setTimeout(() => {
+        const replies = [
+          "Bet bro 💪 try mastering Ken Tricking and dash timing first!",
+          "Use Portal Z → Shark Anchor Z → Sanguine Art Z — easy mobile combo 🔥",
+          "Practice dodging mid-combo — timing’s key for bounty hunters!",
+          "Yo nice question 😎 stay grounded when fighting Dough users!"
+        ];
+        const reply = replies[Math.floor(Math.random() * replies.length)];
+        addMessage("bot", reply);
+      }, 800);
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") btn.click();
+    });
+  </script>
 </body>
 </html>
