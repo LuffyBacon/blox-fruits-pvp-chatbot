@@ -125,66 +125,223 @@
   </p>
 
   <script>
-    const chatBox = document.getElementById("chat-box");
-    const input = document.getElementById("user-input");
-    const sendBtn = document.getElementById("send-btn");
+    <script>
+/* ---------------- Blox GPT — fast, accurate, KB-guided ---------------- */
 
-    function addMessage(role, text) {
-      const div = document.createElement("div");
-      div.className = `msg ${role}`;
-      div.textContent = text;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
+// UI helpers
+const chatBox = document.getElementById("chat-box");
+const input   = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
+
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.className = `msg ${role}`;
+  div.textContent = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function addTyping() {
+  const t = document.createElement("div");
+  t.className = "msg bot";
+  t.textContent = "…";
+  chatBox.appendChild(t);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return () => t.remove();
+}
+
+// ---------- “System prompt” rules (accuracy + tone) ----------
+const SYSTEM = `
+You are Blox GPT, a friendly PvP mentor for Blox Fruits.
+Be clear, concise, and correct. Never invent mechanics:
+• Aura/Haki: lets you hit Elementals; it does NOT buff damage.
+• Instinct (Ken): helps dodging/reading; it does NOT add stats.
+• Ken Tricking: timing ON/OFF to survive combos and escape.
+• Portal cannot “chat with others”; stick to movement & traps.
+• Prefer short actionable steps + one tip. If asked to elaborate, go deeper.
+When a user asks for fruit-specific help, give a combo or 2 counters + a punish window.
+`;
+
+// ---------- Load optional KB (fast; safe if missing) ----------
+let KB = { combos: [], counters: [], builds: [], guides: {} };
+(async () => {
+  try {
+    const r = await fetch("./kb/blox_pvp.json", { cache: "no-store" });
+    if (r.ok) KB = await r.json();
+  } catch { /* ok if missing */ }
+})();
+
+// ---------- Tiny retrieval over KB (super fast) ----------
+const norm = s => (s||"").toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();
+
+function makeCorpus() {
+  const C = [];
+  (KB.combos||[]).forEach(c=>{
+    C.push({title:`Combo: ${c.title}`, text:`${(c.inputs||[]).join(" → ")} | ${(c.notes||[]).join(" | ")}`, key:norm(`${c.title} ${(c.inputs||[]).join(" ")} ${(c.notes||[]).join(" ")}`)});
+  });
+  (KB.counters||[]).forEach(ct=>{
+    C.push({title:`Counter vs ${ct.enemy||"?"}`, text:(ct.tips||[]).join(" | "), key:norm(`${ct.enemy} ${(ct.tips||[]).join(" ")}`)});
+  });
+  (KB.builds||[]).forEach(b=>{
+    C.push({title:`Build: ${b.label||"?"}`, text:(b.notes||[]).join(" | "), key:norm(`${b.label} ${(b.notes||[]).join(" ")}`)});
+  });
+  if (KB.guides?.theory) C.push({title:"PvP Theory", text:KB.guides.theory, key:norm(KB.guides.theory)});
+  return C;
+}
+function retrieve(q, k=4) {
+  const C = makeCorpus();
+  const n = norm(q);
+  const hits = C.filter(x=>x.key.includes(n)).slice(0,k);
+  if (!hits.length && KB.guides?.theory) return `Context — PvP Theory: ${KB.guides.theory.slice(0,600)}`;
+  return hits.map(h=>`${h.title}: ${h.text}`).join("\n");
+}
+
+// ---------- Fast intent engine + accuracy guards ----------
+let lastIntent = null;
+const N = s => (s||"").toLowerCase();
+
+function reply(raw){
+  const q = N(raw);
+
+  // sanity/accuracy guards
+  if (/sprite\b/.test(q)) return "There’s no Sprite race in Blox Fruits. Stick to Angel, Cyborg, Draco, Ghoul, Rabbit, etc.";
+  if (/haki|aura/.test(q)) return "Aura (Haki) lets you hit Elemental users — it doesn’t add damage. Keep it on in PvP to bypass Elementals.";
+  if (/instinct\b/.test(q) && !/ken|trick/.test(q)) return "Instinct helps with dodging/reading. Use **Ken Tricking** (toggle ON/OFF with timing) to survive combos and escape.";
+
+  // greetings/small talk
+  if (/(yo|hey|hello|hi|wsp|sup)\b/.test(q)) {
+    lastIntent = "greet";
+    return "Yo! Wanna work on **combos**, **counters**, **Ken Tricking**, or **playstyle drills**?";
+  }
+  if (/(thanks|thank you|ur cool|you're cool|nice|love u)/.test(q)) {
+    lastIntent = "nice";
+    return "Appreciate it 😎 now let’s cook some PvP wins.";
+  }
+
+  // playstyles
+  if (/(passive|aggressive)(.*playstyle|style)?/.test(q)) {
+    lastIntent = "playstyles";
+    return [
+      "🔥 **Passive vs Aggressive**",
+      "• **Aggressive**: Rushdown. Fast starters, break Ken, punish endlag instantly.",
+      "• **Passive**: Bait and punish. Keep spacing, poke at range, counter on whiff.",
+      "👉 Mix both mid-fight so you’re unpredictable."
+    ].join("\n");
+  }
+
+  // Ken Tricking
+  if (/ken.?trick|instinct trick|teach.*ken/.test(q)) {
+    lastIntent = "kentrick";
+    return [
+      "⚡ **Ken Tricking (how-to)**",
+      "1) Keep Instinct **OFF**.",
+      "2) Toggle **ON** right as a multi-hit/stun starts to absorb safely.",
+      "3) Toggle **OFF** instantly to save dodges.",
+      "4) Counter during endlag (e.g., GH Z → C → X).",
+      "Practice vs Dough V / Ice V / Rumble to learn timings."
+    ].join("\n");
+  }
+
+  // elaborate
+  if (/elaborate|more detail|go deeper|explain more|detail/.test(q)) {
+    if (lastIntent === "kentrick") {
+      return [
+        "💥 **Ken Tricking — deeper**",
+        "• Watch animation/sound cues; don’t spam toggles.",
+        "• Time it for big AoEs (Dragon C / Dough V).",
+        "• After a baited hit: dash-cancel → starter (Trident X / GH Z).",
+        "• Cyborg V4 can break Ken loops — disengage and reset spacing."
+      ].join("\n");
     }
-
-    let lastIntent = null;
-    const N = s => (s || "").toLowerCase();
-
-    function reply(qRaw) {
-      const q = N(qRaw);
-      if (/(yo|hey|hello|wsp|sup)/.test(q)) return "Yo bro 👋 how’s bounty grind going?";
-      if (/passive|aggressive/.test(q)) {
-        lastIntent = "playstyle";
-        return "🔥 Passive vs Aggressive:\n• Aggro = Rushdown combos & pressure.\n• Passive = Bait, punish, and control spacing.\nMix them so your opponent never predicts.";
-      }
-      if (/ken.?trick/.test(q)) {
-        lastIntent = "ken";
-        return "⚡ Ken Tricking basics:\n1) Keep Instinct OFF.\n2) Toggle ON right before a stun hit.\n3) Cancel fast to save dodges.\n4) Counter during endlag.";
-      }
-      if (/elaborate|more|explain/.test(q)) {
-        if (lastIntent === "ken")
-          return "💥 Advanced Ken Tricking:\nWatch animations, time toggle on multi-hits like Dough V or Dragon C.\nDash cancel and punish after endlag.";
-        if (lastIntent === "playstyle")
-          return "🧩 Playstyle drills:\n• Aggro: Engage first & break Ken.\n• Passive: Only punish mistakes.\nMix both to confuse your opponent.";
-        return "What do you want me to elaborate on bro? 😎";
-      }
-      if (/combo|route/.test(q)) {
-        if (/portal/.test(q))
-          return "🌀 Portal combo (mobile-friendly):\nPortal Z → Anchor Z → Sanguine Z → Sanguine C → Sanguine X";
-        return "⚔️ Try these combos:\n• Sand C → Sand V → Anchor Z → Anchor X → Sanguine Z → C → X\n• Ice V → Ice C → Ice Z → GH X → GH Z → GH C";
-      }
-      if (/counter|vs|beat/.test(q)) {
-        if (/buddha/.test(q))
-          return "🙏 Vs Buddha:\nStay out of M1 range, poke from distance, punish their endlag.";
-        if (/dough/.test(q))
-          return "🍩 Vs Dough:\nStay airborne, punish after missed C, or use Cyborg V4 Aftershock to break combos.";
-        return "Who you fighting — Buddha, Dough, or someone else?";
-      }
-      return "Bet bro 💪 ask me about combos, counters, Ken Tricking, or playstyles.";
+    if (lastIntent === "playstyles") {
+      return [
+        "🧩 **Drills**",
+        "• Aggro: 10 rounds forcing first engage; punish every endlag.",
+        "• Passive: 10 rounds only reacting — no first strike.",
+        "• Review 1 mistake per round and fix it next."
+      ].join("\n");
     }
+    return "Tell me what to go deeper on — **Ken Tricking**, **playstyles**, **combos**, or **counters**?";
+  }
 
-    function sendNow() {
-      const text = input.value.trim();
-      if (!text) return;
-      addMessage("user", text);
-      input.value = "";
-      const out = reply(text);
-      setTimeout(() => addMessage("bot", out), 150);
+  // combos
+  if (/combo|route/.test(q) || /portal.*combo/.test(q)) {
+    lastIntent = "combos";
+    if (/portal/.test(q)) {
+      return [
+        "🌀 **Portal (mobile-friendly)**",
+        "Portal **Z** → Shark Anchor **Z** → Sanguine **Z** → **C** → **X**",
+        "Tip: keep camera level after Anchor Z so Sanguine connects clean."
+      ].join("\n");
     }
+    // Try KB retrieval first
+    const ctx = retrieve(q);
+    if (ctx) {
+      return [
+        "⚔️ **Combos**",
+        ctx,
+        "Ask for your fruit and I’ll tailor it."
+      ].join("\n");
+    }
+    return [
+      "⚔️ **Try these**",
+      "• Sand C → Sand V → Anchor Z → Anchor X → Sanguine Z → C → X",
+      "• Ice V → Unawakened Ice C → Ice Z → GH X → GH Z → GH C",
+      "• DT X → Dough V → Dough X → Dough C → EClaw C → EClaw X",
+      "Say your fruit and I’ll tailor it."
+    ].join("\n");
+  }
 
-    sendBtn.addEventListener("click", sendNow);
-    input.addEventListener("keydown", e => { if (e.key === "Enter") sendNow(); });
-  </script>
-</body>
-</html>
+  // counters
+  if (/counter|how to beat|how do i beat|\bvs\b/.test(q)) {
+    lastIntent = "counters";
+    if (/\bbuddha\b/.test(q)) {
+      return "🙏 **Vs Buddha** — stay out of M1 range; poke from distance; air-camp if needed; punish after Z endlag. Don’t chase — make them whiff first.";
+    }
+    if (/\bdough\b/.test(q)) {
+      return "🍩 **Vs Dough** — stay airborne; many routes are ground-based. Cyborg V4 Aftershock can interrupt. Wait for animation endlag; punish fast.";
+    }
+    if (/\bice\b/.test(q)) {
+      return "❄️ **Vs Ice** — avoid ground trades; fight in the air; punish missed Z/V with a quick starter (Trident X / GH Z).";
+    }
+    if (/\bportal\b/.test(q)) {
+      return "🌀 **Vs Portal** — don’t chase teleports; hold your starter for their Rift recovery; punish after V trap if they miss.";
+    }
+    // KB retrieval for unknown target
+    const ctx = retrieve(q);
+    if (ctx) return ctx;
+    return "Who you fighting — **Buddha**, **Dough**, **Ice**, **Portal**, or someone else?";
+  }
+
+  // ask for fruit/build
+  if (/build|stat|distribution|accessor|gear/.test(q)) {
+    const ctx = retrieve("build");
+    return ctx || "General rule: Max your main damage stat (Fruit/Sword/Gun) + Melee (energy) + Defense (HP). Pick accessories for mobility/dodges.";
+  }
+
+  // default with system guard
+  lastIntent = "misc";
+  return "Bet bro 💪 ask me about **combos**, **counters**, **Ken Tricking**, or **playstyles**. If you want, say your **fruit/race** and I’ll tailor it.";
+}
+
+// ---------- Wire up (fast; uses tiny artificial delay for vibe) ----------
+function sendNow(){
+  const text = input.value.trim();
+  if (!text) return;
+  addMessage("user", text);
+  input.value = "";
+  const done = addTyping(); // show quick typing bubble
+  // generate fast (no heavy compute)
+  setTimeout(()=>{
+    const sys = SYSTEM.trim().length ? "" : ""; // (kept for clarity; no external LLM used)
+    const out = reply(text);
+    done();
+    addMessage("bot", out);
+  }, 120);
+}
+
+sendBtn.addEventListener("click", sendNow);
+input.addEventListener("keydown", e => { if (e.key === "Enter") sendNow(); });
+</script>
+
 
