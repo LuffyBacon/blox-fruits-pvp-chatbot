@@ -40,7 +40,8 @@
   "fundamentals": [
     "Stats: Max your main damage stat (Fruit/Sword/Gun) plus Melee and Defense.",
     "Aura (Haki): Keep on to damage Elemental users; offensive + defensive buff.",
-    "Instinct (Observation/Ken): Defensive tool; don’t hold forever or it gets broken.",
+    "Instinct (Observation/Ken): a tool you could use to dodge players' attacks. Certain moves can turn off your instinct and certain do not, so abuse this feature
+    to your advantage so you can dodge other players' combos.",
     "Ken Tricking: Toggle on/off with timing to escape combos.",
     "Movement: Constant dashes, air control, use terrain/high ground.",
     "Endlag: Punish after enemy moves/cooldowns.",
@@ -52,4 +53,16 @@
   "accessories_recommended": [
     "Pilot Helmet", "Hunter Cape (Red)", "Swan Glasses", "Leviathan Shield", "Kitsune Mask", "Pale Scarf", "Dino Hood"
   ]
-}
+} "game_rules": {
+  "mechanics_truths": [
+    "Haki (Aura) only helps hit Elemental users, not increase damage.",
+    "Instinct is just for Ken tricking and dodge timing, not raw power.",
+    "Race abilities, combos, and cooldown timing decide fights — not basic stats.",
+    "Mobility, stun chaining, and reaction speed are the biggest PvP factors."
+  ],
+  "forbidden_advice": [
+    "Never say that Haki or Instinct make you stronger directly.",
+    "Do not say 'balanced team' — PvP is 1v1, not team-based."
+  ]  
+} 
+
